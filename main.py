@@ -41,27 +41,35 @@ def get_all_users_ids() -> None:
 
 # get_all_users_ids()
 
+async def send_message_to_people(text):
+    block_counter = 0
+    for user in all_users_ids:
+        try:
+            await bot.send_message(chat_id=user, text=f"{text}", parse_mode="HTML")
+            await asyncio.sleep(0.35)
+        except BotBlocked:
+            block_counter += 1
+    await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
+
 
 async def donate_for_developer():
-    block_counter = 0
     text = """
-    <b>Шановні користувачі SmilaBusTime!</b>\n\nРозробник орендує сервер, на якому знаходиться бот, 
+<b>Шановні користувачі SmilaBusTime!</b>\n\nРозробник орендує сервер, на якому знаходиться бот, 
 для його постійної роботи. Якщо ви є активним користувачем мого маленького проєкту та він полегшує ваше життя,
 ви можете допомогти назбирати потрібну суму для щомісячної оренди. <u>Я ні в якому разі не примушую вас 
 до такого кроку, ви це робите лише зі свого власного бажання.</u> Також я гарантую, що всі зібрані кошти підуть лише на 
 оплату оренди серверу.\n\nЗ великою подякою, Всеволод - розробник телеграм-боту SmilaBusTime! &#10084;
     """
-    for user in all_users_ids:
-        try:
-            await bot.send_message(chat_id=user, text=f"{text}", parse_mode="HTML")
-            await bot.send_message(chat_id=user,
-                                   text='<a href="https://send.monobank.ua/8DgxnTfLuK">Підтримай існування проєкту SmilaBusTime!</a>',
-                                   reply_markup=inline_buttons.admin_reply_keyboard,
-                                   parse_mode="HTML")
-            await asyncio.sleep(0.35)
-        except BotBlocked:
-            block_counter += 1
-    await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
+    await send_message_to_people(text)
+
+
+async def help_developer():
+    text = """
+<b>Шановні користувачі SmilaBusTime!</b>\nЯкщо ви маєте інформацію про актуальний графік руху 
+будь-якого автобусу, що не співпадає з тим, який надсилає вам бот, прошу надіслати інформацію розробнику за тегом: @vsevchick.\n
+<b>Також не забувайте, що ви завжди можете звернутися до розробника для зауважень, прохань або реклами</b>\n
+Дякую, що користуєтесь SmilaBusTime! &#10084"""
+    await send_message_to_people(text)
 
 
 @dp.message_handler(Command("start"))
@@ -156,7 +164,8 @@ async def callback_processing(callback_query: types.CallbackQuery):
                     f'Наступний автобус відправляється:\n'
                     f'<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
                     f'<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n'
-                    f'<b>{db_con.get_departure_time_after_now_3()} {db_con.get_notes_end_after_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n'
+                    f'<b>{db_con.get_departure_time_after_now_3()} {db_con.get_notes_end_after_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n\n'
+                    f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
                 )
             else:
                 message_text = (
@@ -165,7 +174,8 @@ async def callback_processing(callback_query: types.CallbackQuery):
                     f'<b>{db_con.get_departure_time_before_now_2()} {db_con.get_notes_right_before_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n\n'
                     f'Наступний автобус відправляється:\n'
                     f'<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
-                    f'<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n'
+                    f'<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n\n'
+                    f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
                 )
             await callback_query.message.answer(text=message_text,
                                                 reply_markup=inline_buttons.bus_inline_keyboard,
@@ -184,14 +194,17 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
                 f'Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n\n'
                 f'Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n\n'
                 f'Час відправлення із зупинки "{db_con.get_departure_point_3()}":\n{db_con.get_full_departure_time_3()}\n\n'
+                f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
             )
         else:
             message_text = (
                 f'Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n\n'
                 f'Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n\n'
+                f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
             )
         await callback_query.message.answer(text=message_text,
-                                            reply_markup=inline_buttons.bus_inline_keyboard)
+                                            reply_markup=inline_buttons.bus_inline_keyboard,
+                                            parse_mode='HTML')
         await state.finish()
     except KeyError:
         await callback_query.message.answer(text="Ви не обрали автобус. Будь ласка, повторіть спробу.",
@@ -202,6 +215,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    schedule.add_job(donate_for_developer, "cron", day_of_week="sun", hour=13, minute=30)
+    schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=22, minute=00)
+    schedule.add_job(help_developer, "cron", day_of_week="tue", hour=16, minute=00)
     schedule.start()
     executor.start_polling(dp, skip_updates=True)

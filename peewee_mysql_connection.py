@@ -46,6 +46,7 @@ def process_bus_class(route):
         departure_point_1 = CharField(max_length=100, null=True)
         departure_point_2 = CharField(max_length=100, null=True)
         departure_point_3 = CharField(max_length=100, null=True)
+        days = CharField(max_length=255, null=True)
 
         class Meta:
             database = db
@@ -304,5 +305,12 @@ def get_full_departure_time_3():
             to_list = f"{row.departure_time_3.strftime('%H').zfill(2)}:{row.departure_time_3.strftime('%M').zfill(2)}"
             full_time_list.append(to_list)
     return full_time_list
+
+
+def get_days():
+    bus = process_bus_class(route_name)
+    rows = bus.select()
+    for row in rows:
+        return row.days
 
 db.close()
