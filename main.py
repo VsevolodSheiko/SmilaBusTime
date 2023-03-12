@@ -31,7 +31,7 @@ class MyStates(StatesGroup):
     get_full_buses = State()
 
 
-all_users_ids = []
+all_users_ids = [DEVELOPER_ID]
 
 
 def get_all_users_ids() -> None:
@@ -39,10 +39,7 @@ def get_all_users_ids() -> None:
         all_users_ids.append(i.id)
 
 
-print(all_users_ids)
-
-
-#  get_all_users_ids()
+# get_all_users_ids()
 
 
 async def donate_for_developer():
@@ -97,7 +94,7 @@ async def admin_send_message(message: types.Message):
     if message.text == "Відправити повідомлення" and message.chat.id == DEVELOPER_ID:
         await message.answer("Введіть повідомлення, яке бажаєте відправити:")
         await MyStates.waiting_for_message.set()
-    elif message.text != "Відправити повідомлення" and message.text == "Назад":
+    elif message.text == "Назад":
         await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                              reply_markup=inline_buttons.bus_inline_keyboard)
     else:
@@ -109,9 +106,13 @@ async def admin_send_message(message: types.Message):
 async def process_message_from_admin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['waiting_for_message'] = message.text
-        await message.answer(text="Повідомлення отримано. Бажаєте надіслати?",
-                             reply_markup=inline_buttons.confirm_reply_keyboard)
-        await MyStates.next()
+        if message.text == "Назад":
+            await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
+                                 reply_markup=inline_buttons.bus_inline_keyboard)
+        else:
+            await message.answer(text="Повідомлення отримано. Бажаєте надіслати?",
+                                 reply_markup=inline_buttons.confirm_reply_keyboard)
+            await MyStates.next()
 
 
 @dp.message_handler(state=MyStates.sending_the_message)
@@ -201,7 +202,6 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    schedule.add_job(donate_for_developer, "cron", day_of_week="thu", hour=20, minute=56)
-    #  schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=20, minute=20)
+    schedule.add_job(donate_for_developer, "cron", day_of_week="sun", hour=13, minute=30)
     schedule.start()
     executor.start_polling(dp, skip_updates=True)
