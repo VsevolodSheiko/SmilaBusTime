@@ -19,14 +19,14 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN_test = os.environ.get("TOKEN_test")
+TOKEN = os.environ.get("TOKEN_main")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
 log_file = 'bot_errors.log'
 logging.basicConfig(filename=log_file, level=logging.ERROR)
 
-bot = Bot(token=TOKEN_test)
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 

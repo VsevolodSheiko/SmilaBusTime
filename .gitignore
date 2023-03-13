@@ -3,6 +3,8 @@ create_tables.py
 database1.db
 database_data_copy.py
 smilabustime_database_zipped.zip
+bot_errors.log
+bot.service
 .idea/
 __pycache__/
 venv/
