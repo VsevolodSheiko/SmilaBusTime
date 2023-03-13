@@ -1,6 +1,7 @@
 import datetime
 import os
 import asyncio
+import logging
 
 from aiogram import Bot, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -21,6 +22,10 @@ load_dotenv()
 TOKEN_test = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
+# Set up logging
+log_file = 'bot_errors.log'
+logging.basicConfig(filename=log_file, level=logging.ERROR)
+
 bot = Bot(token=TOKEN_test)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
@@ -31,7 +36,7 @@ class MyStates(StatesGroup):
     get_full_buses = State()
 
 
-all_users_ids = [DEVELOPER_ID]
+all_users_ids = []
 
 
 def get_all_users_ids() -> None:
@@ -39,7 +44,8 @@ def get_all_users_ids() -> None:
         all_users_ids.append(i.id)
 
 
-# get_all_users_ids()
+get_all_users_ids()
+
 
 async def send_message_to_people(text):
     block_counter = 0
@@ -50,6 +56,12 @@ async def send_message_to_people(text):
         except BotBlocked:
             block_counter += 1
     await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
+
+
+async def check_log_file_and_send_to_developer():
+    if os.stat(log_file).st_size != 0:
+        with open(log_file, 'rb') as file:
+            await bot.send_document(chat_id=DEVELOPER_ID, document=file)
 
 
 async def donate_for_developer():
@@ -70,6 +82,11 @@ async def help_developer():
 <b>Також не забувайте, що ви завжди можете звернутися до розробника для зауважень, прохань або реклами</b>\n
 Дякую, що користуєтесь SmilaBusTime! &#10084"""
     await send_message_to_people(text)
+
+
+@dp.errors_handler()
+async def handle_errors(error):
+    logging.error(error)
 
 
 @dp.message_handler(Command("start"))
@@ -217,5 +234,6 @@ if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=22, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=16, minute=00)
+    schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
     schedule.start()
     executor.start_polling(dp, skip_updates=True)
