@@ -10,7 +10,7 @@ from aiogram.utils import executor
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.exceptions import BotBlocked
+from aiogram.utils import exceptions
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 
@@ -41,7 +41,7 @@ all_users_ids = []
 
 def get_all_users_ids() -> None:
     for i in db_con.User.select().execute():
-        all_users_ids.append(i.id)
+        all_users_ids.append(str(i.id))
 
 
 get_all_users_ids()
@@ -51,10 +51,21 @@ async def send_message_to_people(text):
     block_counter = 0
     for user in all_users_ids:
         try:
-            await bot.send_message(chat_id=user, text=f"{text}", parse_mode="HTML")
-            await asyncio.sleep(0.35)
-        except BotBlocked:
+            await bot.send_message(chat_id=str(user), text=f"{text}", parse_mode="HTML")
+            await asyncio.sleep(1)
+        except exceptions.BotBlocked:
             block_counter += 1
+        except exceptions.ChatNotFound:
+            logging.error(f"Target [ID:{user}]: invalid user ID")
+        except exceptions.RetryAfter as e:
+            logging.error(f"Target [ID:{user}]: Flood limit is exceeded. Sleep {e.timeout} seconds.")
+            await asyncio.sleep(e.timeout)
+        except exceptions.UserDeactivated:
+            logging.error(f"Target [ID:{user}]: user is deactivated")
+        except exceptions.TelegramAPIError as e:
+            logging.error(f"Target [ID:{user}]: {e}")
+        else:
+            logging.error(f"Target [ID:{user}]: unknown error")
     await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
 
 
@@ -149,10 +160,23 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
             block_counter = 0
             for user in all_users_ids:
                 try:
+                    print(user)
                     await bot.send_message(chat_id=user, text=f"{text}", parse_mode="HTML")
-                    await asyncio.sleep(0.35)
-                except BotBlocked:
+                    await asyncio.sleep(1)
+                except exceptions.BotBlocked:
                     block_counter += 1
+                except exceptions.ChatNotFound:
+                    logging.error(f"Target [ID:{user}]: invalid user ID")
+                except exceptions.RetryAfter as e:
+                    logging.error(f"Target [ID:{user}]: Flood limit is exceeded. Sleep {e.timeout} seconds.")
+                    await asyncio.sleep(e.timeout)
+                except exceptions.UserDeactivated:
+                    logging.error(f"Target [ID:{user}]: user is deactivated")
+                except exceptions.TelegramAPIError as e:
+                    logging.error(f"Target [ID:{user}]: {e}")
+                else:
+                    logging.error(f"Target [ID:{user}]: unknown error")
+
             await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot",
                                    parse_mode="HTML")
         elif message.text == "Назад":
