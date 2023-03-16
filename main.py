@@ -134,6 +134,7 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
         if message.text == "Назад":
             await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                                  reply_markup=inline_buttons.bus_inline_keyboard)
+            await state.finish()
         else:
             await message.answer(text="Повідомлення отримано. Бажаєте надіслати?",
                                  reply_markup=inline_buttons.confirm_reply_keyboard)
