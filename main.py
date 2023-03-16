@@ -169,6 +169,8 @@ async def callback_processing(callback_query: types.CallbackQuery):
             await MyStates.get_full_buses.set()
             await callback_query.message.answer(text=f"Натисніть на плитку вище з потрібним номером автобусу &#9650;",
                                                 parse_mode="HTML")
+        elif callback_query.data == "chat_to_developer":
+            await callback_query.message.answer(text=f"Написати розробнику", parse_mode="HTML")
         else:
             bus_name = inline_buttons.dict_of_buttons_no_war[f"{callback_query.data}"]
             db_con.route_name = bus_name

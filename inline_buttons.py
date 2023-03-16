@@ -1,9 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-
+from dotenv import load_dotenv
+import os
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
 admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 
+load_dotenv()
+DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 list_of_buttons = [
     InlineKeyboardButton('3', callback_data='button_3'),
     InlineKeyboardButton('4', callback_data='button_4'),
@@ -30,6 +33,8 @@ list_of_buttons = [
 ]
 
 full_time_button = InlineKeyboardButton('Повний розклад руху', callback_data='full_bus')
+chat_with_developer = InlineKeyboardButton('Написати розробнику', callback_data='chat_to_developer',
+                                           url=f"tg://user?id={DEVELOPER_ID}")
 
 list_of_admin_buttons = [
     KeyboardButton("Відправити повідомлення"),
@@ -67,6 +72,7 @@ for button in list_of_buttons:
     bus_inline_keyboard.insert(button)
 
 bus_inline_keyboard.row(full_time_button)
+bus_inline_keyboard.row(chat_with_developer)
 
 for button in list_of_admin_buttons:
     admin_reply_keyboard.insert(button)
