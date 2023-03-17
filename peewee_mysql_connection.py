@@ -312,4 +312,4 @@ def get_days():
     bus = process_bus_class(route_name)
     rows = bus.select()
     for row in rows:
-        return row.dayss
+        return row.days
