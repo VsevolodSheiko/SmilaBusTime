@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_test")
+TOKEN = os.environ.get("TOKEN")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -46,7 +46,6 @@ def get_all_users_ids() -> None:
 
 get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
-
 
 
 async def send_message_to_people(text):
