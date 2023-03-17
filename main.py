@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = os.environ.get("TOKEN_main")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
