@@ -8,8 +8,9 @@ from datetime import datetime
 
 load_dotenv()
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
+DATABASE_NAME = os.environ.get("DATABASE_NAME")
 
-db = MySQLDatabase("Smila_database",
+db = MySQLDatabase(DATABASE_NAME,
                    host='localhost',
                    user='root',
                    password=DATABASE_PASSWORD,
@@ -311,6 +312,4 @@ def get_days():
     bus = process_bus_class(route_name)
     rows = bus.select()
     for row in rows:
-        return row.days
-
-db.close()
+        return row.dayss

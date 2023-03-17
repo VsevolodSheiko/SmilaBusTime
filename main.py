@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -41,10 +41,12 @@ all_users_ids = []
 
 def get_all_users_ids() -> None:
     for i in db_con.User.select().execute():
-        all_users_ids.append(str(i.id))
+        all_users_ids.append(i.id)
 
 
-get_all_users_ids()
+# get_all_users_ids()
+all_users_ids = list(set(all_users_ids))
+print(all_users_ids)
 
 
 async def send_message_to_people(text):
@@ -52,20 +54,21 @@ async def send_message_to_people(text):
     for user in all_users_ids:
         try:
             await bot.send_message(chat_id=str(user), text=f"{text}", parse_mode="HTML")
-            await asyncio.sleep(1)
+            await bot.send_message(chat_id=DEVELOPER_ID, text=f"message for {user} had been send", parse_mode="HTML")
+            await asyncio.sleep(0.7)
         except exceptions.BotBlocked:
             block_counter += 1
         except exceptions.ChatNotFound:
-            logging.error(f"Target [ID:{user}]: invalid user ID")
+            block_counter += 1
         except exceptions.RetryAfter as e:
-            logging.error(f"Target [ID:{user}]: Flood limit is exceeded. Sleep {e.timeout} seconds.")
+            block_counter += 1
             await asyncio.sleep(e.timeout)
         except exceptions.UserDeactivated:
-            logging.error(f"Target [ID:{user}]: user is deactivated")
+            block_counter += 1
         except exceptions.TelegramAPIError as e:
-            logging.error(f"Target [ID:{user}]: {e}")
+            block_counter += 1
         else:
-            logging.error(f"Target [ID:{user}]: unknown error")
+            pass
     await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
 
 
@@ -73,6 +76,12 @@ async def check_log_file_and_send_to_developer():
     if os.stat(log_file).st_size != 0:
         with open(log_file, 'rb') as file:
             await bot.send_document(chat_id=DEVELOPER_ID, document=file)
+
+
+async def clear_log_file_and_send_to_developer():
+    if os.stat(log_file).st_size != 0:
+        with open(log_file, 'rb') as file:
+            file.truncate(0)
 
 
 async def donate_for_developer():
@@ -90,7 +99,7 @@ async def help_developer():
     text = """
 <b>Шановні користувачі SmilaBusTime!</b>\nЯкщо ви маєте інформацію про актуальний графік руху 
 будь-якого автобусу, що не співпадає з тим, який надсилає вам бот, прошу надіслати інформацію розробнику за тегом: @vsevchick.\n
-<b>Також не забувайте, що ви завжди можете звернутися до розробника для зауважень, прохань або реклами</b>\n
+<b>Також не забувайте, що ви завжди можете звернутися до розробника для <u>реклами</u>,зауважень та прохань</b>\n
 Дякую, що користуєтесь SmilaBusTime! &#10084"""
     await send_message_to_people(text)
 
@@ -102,6 +111,9 @@ async def handle_errors(error):
 
 @dp.message_handler(Command("start"))
 async def start(message: types.Message):
+    await message.answer(text="Оновлення даних...",
+                         reply_markup=inline_buttons.delete_old_keyboard)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
     await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                          reply_markup=inline_buttons.bus_inline_keyboard)
     if message.from_user.id not in all_users_ids:
@@ -157,28 +169,7 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         text = data['waiting_for_message']
         if message.text == "Підтвердити":
-            block_counter = 0
-            for user in all_users_ids:
-                try:
-                    print(user)
-                    await bot.send_message(chat_id=user, text=f"{text}", parse_mode="HTML")
-                    await asyncio.sleep(1)
-                except exceptions.BotBlocked:
-                    block_counter += 1
-                except exceptions.ChatNotFound:
-                    logging.error(f"Target [ID:{user}]: invalid user ID")
-                except exceptions.RetryAfter as e:
-                    logging.error(f"Target [ID:{user}]: Flood limit is exceeded. Sleep {e.timeout} seconds.")
-                    await asyncio.sleep(e.timeout)
-                except exceptions.UserDeactivated:
-                    logging.error(f"Target [ID:{user}]: user is deactivated")
-                except exceptions.TelegramAPIError as e:
-                    logging.error(f"Target [ID:{user}]: {e}")
-                else:
-                    logging.error(f"Target [ID:{user}]: unknown error")
-
-            await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot",
-                                   parse_mode="HTML")
+            await send_message_to_people(text)
         elif message.text == "Назад":
             await bot.send_message(chat_id=DEVELOPER_ID, text="Ви повернулись до головного меню.",
                                    reply_markup=inline_buttons.admin_reply_keyboard)
@@ -200,26 +191,28 @@ async def callback_processing(callback_query: types.CallbackQuery):
             bus_name = inline_buttons.dict_of_buttons_no_war[f"{callback_query.data}"]
             db_con.route_name = bus_name
             if bus_name == "route_3":
-                message_text = (
-                    f'Автобус було відправлено:\n'
-                    f'<b>{db_con.get_departure_time_before_now_1()} {db_con.get_notes_left_before_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
-                    f'<b>{db_con.get_departure_time_before_now_2()} {db_con.get_notes_right_before_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n'
-                    f'<b>{db_con.get_departure_time_before_now_3()} {db_con.get_notes_end_before_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n\n'
-                    f'Наступний автобус відправляється:\n'
-                    f'<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
-                    f'<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n'
-                    f'<b>{db_con.get_departure_time_after_now_3()} {db_con.get_notes_end_after_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n\n'
-                    f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
+                message_text = (f"""
+&#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>\n
+Автобус було відправлено:
+<b>{db_con.get_departure_time_before_now_1()} {db_con.get_notes_left_before_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
+<b>{db_con.get_departure_time_before_now_2()} {db_con.get_notes_right_before_now()} </b>із зупинки "{db_con.get_departure_point_2()}"
+<b>{db_con.get_departure_time_before_now_3()} {db_con.get_notes_end_before_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n
+Наступний автобус відправляється:
+<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
+<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"
+<b>{db_con.get_departure_time_after_now_3()} {db_con.get_notes_end_after_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
                 )
             else:
-                message_text = (
-                    f'Автобус було відправлено:\n'
-                    f'<b>{db_con.get_departure_time_before_now_1()} {db_con.get_notes_left_before_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
-                    f'<b>{db_con.get_departure_time_before_now_2()} {db_con.get_notes_right_before_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n\n'
-                    f'Наступний автобус відправляється:\n'
-                    f'<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"\n'
-                    f'<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n\n'
-                    f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
+                message_text = (f"""
+&#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>\n
+Автобус було відправлено:
+<b>{db_con.get_departure_time_before_now_1()} {db_con.get_notes_left_before_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
+<b>{db_con.get_departure_time_before_now_2()} {db_con.get_notes_right_before_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
+Наступний автобус відправляється:
+<b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
+<b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
                 )
             await callback_query.message.answer(text=message_text,
                                                 reply_markup=inline_buttons.bus_inline_keyboard,
@@ -234,17 +227,19 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
         bus_name = inline_buttons.dict_of_buttons_no_war[f"{callback_query.data}"]
         db_con.route_name = bus_name
         if bus_name == "route_3":
-            message_text = (
-                f'Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n\n'
-                f'Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n\n'
-                f'Час відправлення із зупинки "{db_con.get_departure_point_3()}":\n{db_con.get_full_departure_time_3()}\n\n'
-                f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
+            message_text = (f"""
+&#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>
+Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n
+Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n
+Час відправлення із зупинки "{db_con.get_departure_point_3()}":\n{db_con.get_full_departure_time_3()}\n
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
             )
         else:
-            message_text = (
-                f'Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n\n'
-                f'Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n\n'
-                f'&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}'
+            message_text = (f"""
+&#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>
+Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n
+Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
             )
         await callback_query.message.answer(text=message_text,
                                             reply_markup=inline_buttons.bus_inline_keyboard,
@@ -262,5 +257,6 @@ if __name__ == "__main__":
     schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=22, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=16, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
+    schedule.add_job(clear_log_file_and_send_to_developer, "cron", hour="8, 20", minute="1")
     schedule.start()
     executor.start_polling(dp, skip_updates=True)

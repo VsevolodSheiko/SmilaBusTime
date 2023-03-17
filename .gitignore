@@ -5,6 +5,7 @@ database_data_copy.py
 smilabustime_database_zipped.zip
 bot_errors.log
 bot.service
+userbase_backup.sql
 .idea/
 __pycache__/
 venv/

@@ -1,10 +1,10 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from dotenv import load_dotenv
 import os
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
 admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-
+delete_old_keyboard = ReplyKeyboardRemove()
 load_dotenv()
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 list_of_buttons = [
