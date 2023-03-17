@@ -44,9 +44,9 @@ def get_all_users_ids() -> None:
         all_users_ids.append(i.id)
 
 
-# get_all_users_ids()
+get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
-print(all_users_ids)
+
 
 
 async def send_message_to_people(text):
