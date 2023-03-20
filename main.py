@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_test")
+TOKEN = os.environ.get("TOKEN_main")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -213,7 +213,7 @@ async def callback_processing(callback_query: types.CallbackQuery):
 <b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
 <b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
 &#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}
-<a href="{inline_buttons.buttons_links[callback_query.data]}">Маршрут автобуса на карті:</a>"""
+<a href="{inline_buttons.buttons_links[callback_query.data]}">&#128506 Маршрут автобуса на карті</a>"""
                 )
             await callback_query.message.answer(text=message_text,
                                                 reply_markup=inline_buttons.bus_inline_keyboard,
