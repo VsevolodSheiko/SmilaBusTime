@@ -16,9 +16,8 @@ db = MySQLDatabase(DATABASE_NAME,
                    password=DATABASE_PASSWORD,
                    port=3306)
 
-route_name = "route_17"
+route_name = ""
 
-#  time_modifier = '13:00:00'
 db.connect()
 cursor = db.cursor()
 

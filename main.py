@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -53,7 +53,6 @@ async def send_message_to_people(text):
     for user in all_users_ids:
         try:
             await bot.send_message(chat_id=str(user), text=f"{text}", parse_mode="HTML")
-            await bot.send_message(chat_id=DEVELOPER_ID, text=f"message for {user} had been send", parse_mode="HTML")
             await asyncio.sleep(0.7)
         except exceptions.BotBlocked:
             block_counter += 1
@@ -105,7 +104,7 @@ async def help_developer():
 
 
 @dp.errors_handler()
-async def handle_errors(error):
+async def handle_errors(error, *args):
     logging.error(error)
 
 
@@ -169,13 +168,14 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         text = data['waiting_for_message']
         if message.text == "Підтвердити":
+            await state.finish()
             await send_message_to_people(text)
         elif message.text == "Назад":
+            await state.finish()
             await bot.send_message(chat_id=DEVELOPER_ID, text="Ви повернулись до головного меню.",
                                    reply_markup=inline_buttons.admin_reply_keyboard)
             await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                                  reply_markup=inline_buttons.bus_inline_keyboard)
-    await state.finish()
 
 
 @dp.callback_query_handler()
@@ -188,7 +188,7 @@ async def callback_processing(callback_query: types.CallbackQuery):
         elif callback_query.data == "chat_to_developer":
             await callback_query.message.answer(text=f"Написати розробнику", parse_mode="HTML")
         else:
-            bus_name = inline_buttons.dict_of_buttons_no_war[f"{callback_query.data}"]
+            bus_name = inline_buttons.dict_of_buttons[f"{callback_query.data}"]
             db_con.route_name = bus_name
             if bus_name == "route_3":
                 message_text = (f"""
@@ -212,7 +212,8 @@ async def callback_processing(callback_query: types.CallbackQuery):
 Наступний автобус відправляється:
 <b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
 <b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
-&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}
+<a href="{inline_buttons.buttons_links[callback_query.data]}">Маршрут автобуса на карті:</a>"""
                 )
             await callback_query.message.answer(text=message_text,
                                                 reply_markup=inline_buttons.bus_inline_keyboard,
@@ -224,7 +225,7 @@ async def callback_processing(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(state=MyStates.get_full_buses)
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     try:
-        bus_name = inline_buttons.dict_of_buttons_no_war[f"{callback_query.data}"]
+        bus_name = inline_buttons.dict_of_buttons[f"{callback_query.data}"]
         db_con.route_name = bus_name
         if bus_name == "route_3":
             message_text = (f"""
@@ -255,7 +256,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=22, minute=00)
-    schedule.add_job(help_developer, "cron", day_of_week="tue", hour=16, minute=00)
+    schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
     schedule.add_job(clear_log_file_and_send_to_developer, "cron", hour="8, 20", minute="1")
     schedule.start()

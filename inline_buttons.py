@@ -1,12 +1,15 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from dotenv import load_dotenv
 import os
+
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
 admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 delete_old_keyboard = ReplyKeyboardRemove()
+
 load_dotenv()
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
+
 list_of_buttons = [
     InlineKeyboardButton('3', callback_data='button_3'),
     InlineKeyboardButton('4', callback_data='button_4'),
@@ -21,6 +24,7 @@ list_of_buttons = [
     InlineKeyboardButton('49', callback_data='button_49'),
     InlineKeyboardButton('126', callback_data='button_126'),
     InlineKeyboardButton('129', callback_data='button_129'),
+    InlineKeyboardButton('135', callback_data='button_135'),
     InlineKeyboardButton('139', callback_data='button_139'),
     InlineKeyboardButton('140', callback_data='button_140'),
     InlineKeyboardButton('141', callback_data='button_141'),
@@ -42,7 +46,7 @@ list_of_admin_buttons = [
 ]
 
 
-dict_of_buttons_no_war = {
+dict_of_buttons = {
     "button_3": "route_3",
     "button_4": "route_4",
     "button_5": "route_5",
@@ -56,6 +60,7 @@ dict_of_buttons_no_war = {
     "button_49": "route_49",
     "button_126": "route_126",
     "button_129": "route_129",
+    "button_135": "route_135",
     "button_139": "route_139",
     "button_140": "route_140",
     "button_141": "route_141",
@@ -65,6 +70,33 @@ dict_of_buttons_no_war = {
     "button_155": "route_155",
     "button_302": "route_302",
     "button_309": "route_309",
+
+}
+
+buttons_links = {
+    "button_3": "",
+    "button_4": "https://www.google.com/maps/d/u/0/edit?mid=1zz64r9m2eFv75kiMI-DC02EGxm1bQfU&usp=sharing",
+    "button_5": "",
+    "button_17": "https://www.google.com/maps/d/u/0/edit?mid=1TcLlgwou9oaE0OhXOJ4FklBwydwtgF4&usp=sharing",
+    "button_30": "https://www.google.com/maps/d/u/0/edit?mid=1Axylm3JiDQ-qzY6ZHu-rlRXSiXcqEN4&usp=sharing",
+    "button_32": "https://www.google.com/maps/d/u/0/edit?mid=1CpFX4FecfM9Z015I2kokOMMPXXxK8fg&usp=sharing",
+    "button_34": "https://www.google.com/maps/d/u/0/edit?mid=1u6lpDXHjj2czMdZyBBdlQxyi_zqCQqw&usp=sharing",
+    "button_39": "https://www.google.com/maps/d/u/0/edit?mid=1pKQ3g4cTDu8STRN02ki4QmL1NCX2A3M&usp=sharing",
+    "button_40": "https://www.google.com/maps/d/u/0/edit?mid=1u4T3f9D945xSrdhDyA2jbCyaPTUBxdU&usp=sharing",
+    "button_48": "route_48",
+    "button_49": "https://www.google.com/maps/d/u/0/edit?mid=1vNY7jE3T9L9R2yLJdrEV8WwJ12Aqgpk&usp=sharing",
+    "button_126": "https://www.google.com/maps/d/u/0/edit?mid=1EVKgAtZtETezea5x_Fiq_WywADnWxOg&usp=sharing",
+    "button_129": "https://www.google.com/maps/d/u/0/edit?mid=1flhYid0lA1DdwpGkzWAiVIvPANdvwH8&usp=sharing",
+    "button_135": "https://www.google.com/maps/d/u/0/edit?mid=1ZEuKc6XE_JHA6nLMoQ222EHpRKOwz-U&usp=sharing",
+    "button_139": "https://www.google.com/maps/d/u/0/edit?mid=1q6ZjVgWvbiSBuM76kopF3-zxb5yGCOM&usp=sharing",
+    "button_140": "https://www.google.com/maps/d/u/0/edit?mid=1qhRhrJeRsp02n-9g26-A7UXK72zb2dQ&usp=sharing",
+    "button_141": "https://www.google.com/maps/d/u/0/edit?mid=1nk-l9rrqywfpVgao7AubXN8oimLRRYU&usp=sharing",
+    "button_150": "https://www.google.com/maps/d/u/0/edit?mid=1KnfPme6iFu-QfTLoZ56c3UdL7XnKF4s&usp=sharing",
+    "button_153": "https://www.google.com/maps/d/u/0/edit?mid=1NAQfwb_ocf0mbwfMS4sFHlkH9l292T4&usp=sharing",
+    "button_154": "https://www.google.com/maps/d/u/0/edit?mid=1WpJc0-cVC_6F1Dn1pi7bJLy4cdkS31c&usp=sharing",
+    "button_155": "https://www.google.com/maps/d/u/0/edit?mid=1k3aEP47nIHOoYwKOw0S6a8CMqWc6nNo&usp=sharing",
+    "button_302": "https://www.google.com/maps/d/u/0/edit?mid=1SqOR3qkr7GEEgsJ-oVSngcTEC7XtSUI&usp=sharing",
+    "button_309": "https://www.google.com/maps/d/u/0/edit?mid=18WTkDF8PcJju6Im6cK6rnelYsBE5ZVM&usp=sharing",
 
 }
 
