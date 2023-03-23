@@ -98,7 +98,7 @@ async def help_developer():
     text = """
 <b>Шановні користувачі SmilaBusTime!</b>\nЯкщо ви маєте інформацію про актуальний графік руху 
 будь-якого автобусу, що не співпадає з тим, який надсилає вам бот, прошу надіслати інформацію розробнику за тегом: @vsevchick.\n
-<b>Також не забувайте, що ви завжди можете звернутися до розробника для <u>реклами</u>,зауважень та прохань</b>\n
+<b>Також не забувайте, що ви завжди можете звернутися до розробника для <u>реклами</u>, зауважень та прохань</b>\n
 Дякую, що користуєтесь SmilaBusTime! &#10084"""
     await send_message_to_people(text)
 
@@ -212,9 +212,11 @@ async def callback_processing(callback_query: types.CallbackQuery):
 Наступний автобус відправляється:
 <b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
 <b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
-&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}
-<a href="{inline_buttons.buttons_links[callback_query.data]}">&#128506 Маршрут автобуса на карті</a>"""
+&#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
                 )
+            await callback_query.message.answer(
+                text=f'<a href="{inline_buttons.buttons_links[callback_query.data]}">&#128506 Маршрут автобуса на карті</a>',
+                parse_mode="HTML")
             await callback_query.message.answer(text=message_text,
                                                 reply_markup=inline_buttons.bus_inline_keyboard,
                                                 parse_mode="HTML")
