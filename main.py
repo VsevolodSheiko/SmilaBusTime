@@ -19,7 +19,7 @@ import peewee_mysql_connection as db_con
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -63,7 +63,7 @@ async def send_message_to_people(text):
             await asyncio.sleep(e.timeout)
         except exceptions.UserDeactivated:
             block_counter += 1
-        except exceptions.TelegramAPIError as e:
+        except exceptions.TelegramAPIError:
             block_counter += 1
         else:
             pass
@@ -71,15 +71,20 @@ async def send_message_to_people(text):
 
 
 async def check_log_file_and_send_to_developer():
+    await bot.send_message(chat_id=DEVELOPER_ID, text=f"{db_con.get_clicks_count()}")
     if os.stat(log_file).st_size != 0:
         with open(log_file, 'rb') as file:
             await bot.send_document(chat_id=DEVELOPER_ID, document=file)
 
 
-async def clear_log_file_and_send_to_developer():
+async def clear_log_file():
     if os.stat(log_file).st_size != 0:
-        with open(log_file, 'rb') as file:
+        with open(log_file, 'w') as file:
             file.truncate(0)
+
+
+async def set_clickers_to_zero():
+    await db_con.set_clickers_to_zero()
 
 
 async def donate_for_developer():
@@ -105,7 +110,7 @@ async def help_developer():
 
 @dp.errors_handler()
 async def handle_errors(error, *args):
-    logging.error(error)
+    logging.error(error, args)
 
 
 @dp.message_handler(Command("start"))
@@ -191,6 +196,7 @@ async def callback_processing(callback_query: types.CallbackQuery):
             bus_name = inline_buttons.dict_of_buttons[f"{callback_query.data}"]
             db_con.route_name = bus_name
             if bus_name == "route_3":
+                db_con.get_and_update_clicks(bus_name)
                 message_text = (f"""
 &#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>\n
 Автобус було відправлено:
@@ -202,7 +208,7 @@ async def callback_processing(callback_query: types.CallbackQuery):
 <b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"
 <b>{db_con.get_departure_time_after_now_3()} {db_con.get_notes_end_after_now()} </b>із зупинки "{db_con.get_departure_point_3()}"\n
 &#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
-                )
+                                )
             else:
                 message_text = (f"""
 &#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>\n
@@ -213,7 +219,8 @@ async def callback_processing(callback_query: types.CallbackQuery):
 <b>{db_con.get_departure_time_after_now_1()} {db_con.get_notes_left_after_now()} </b>із зупинки "{db_con.get_departure_point_1()}"
 <b>{db_con.get_departure_time_after_now_2()} {db_con.get_notes_right_after_now()} </b>із зупинки "{db_con.get_departure_point_2()}"\n
 &#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
-                )
+                                )
+            db_con.get_and_update_clicks(bus_name)
             await callback_query.message.answer(
                 text=f'<a href="{inline_buttons.buttons_links[callback_query.data]}">&#128506 Маршрут автобуса на карті</a>',
                 parse_mode="HTML")
@@ -236,14 +243,14 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n
 Час відправлення із зупинки "{db_con.get_departure_point_3()}":\n{db_con.get_full_departure_time_3()}\n
 &#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
-            )
+                            )
         else:
             message_text = (f"""
 &#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>
 Час відправлення із зупинки "{db_con.get_departure_point_1()}":\n{db_con.get_full_departure_time_1()}\n
 Час відправлення із зупинки "{db_con.get_departure_point_2()}":\n{db_con.get_full_departure_time_2()}\n
 &#x1F4C5 <b>Дні курсування</b>: {db_con.get_days()}"""
-            )
+                            )
         await callback_query.message.answer(text=message_text,
                                             reply_markup=inline_buttons.bus_inline_keyboard,
                                             parse_mode='HTML')
@@ -257,9 +264,10 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=22, minute=00)
+    schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=21, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
-    schedule.add_job(clear_log_file_and_send_to_developer, "cron", hour="8, 20", minute="1")
+    schedule.add_job(clear_log_file, "cron", hour="8, 20", minute="1")
+    schedule.add_job(set_clickers_to_zero, "cron", hour=1)
     schedule.start()
     executor.start_polling(dp, skip_updates=True)

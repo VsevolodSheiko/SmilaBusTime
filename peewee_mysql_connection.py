@@ -5,6 +5,7 @@ from peewee import *
 from dotenv import load_dotenv
 from datetime import datetime
 
+import inline_buttons
 
 load_dotenv()
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
@@ -20,6 +21,15 @@ route_name = ""
 
 db.connect()
 cursor = db.cursor()
+
+
+class Clicker(Model):
+    route_name = CharField(max_length=100, primary_key=True)
+    clicks = BigIntegerField(null=True)
+
+    class Meta:
+        database = db
+        table_name = "click_counter"
 
 
 class User(Model):
@@ -312,3 +322,21 @@ def get_days():
     rows = bus.select()
     for row in rows:
         return row.days
+
+
+def get_and_update_clicks(bus_name):
+    query = Clicker.get(Clicker.route_name == bus_name)
+    query = query.clicks
+    Clicker.update(clicks=query + 1).where(Clicker.route_name == bus_name).execute()
+
+
+def set_clickers_to_zero():
+    for i in inline_buttons.dict_of_buttons.values():
+        Clicker.update(clicks=0).where(Clicker.route_name == i).execute()
+
+
+def get_clicks_count():
+    query = Clicker.select()
+    temp = [i.clicks for i in query]
+    return temp
+
