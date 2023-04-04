@@ -84,7 +84,7 @@ async def clear_log_file():
 
 
 async def set_clickers_to_zero():
-    await db_con.set_clickers_to_zero()
+    db_con.set_clickers_to_zero()
 
 
 async def donate_for_developer():
@@ -264,7 +264,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    # schedule.add_job(donate_for_developer, "cron", day_of_week="fri", hour=21, minute=00)
+    #schedule.add_job(donate_for_developer, "cron", day="20", hour=21, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
     schedule.add_job(clear_log_file, "cron", hour="8, 20", minute="1")

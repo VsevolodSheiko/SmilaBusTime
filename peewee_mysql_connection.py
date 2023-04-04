@@ -337,6 +337,5 @@ def set_clickers_to_zero():
 
 def get_clicks_count():
     query = Clicker.select()
-    temp = [i.clicks for i in query]
+    temp = {i.route_name:i.clicks for i in query}
     return temp
-

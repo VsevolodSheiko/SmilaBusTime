@@ -9,3 +9,4 @@ userbase_backup.sql
 .idea/
 __pycache__/
 venv/
+peewee_mysql_connection_copy.py
