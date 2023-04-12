@@ -44,9 +44,14 @@ def get_all_users_ids() -> None:
         all_users_ids.append(i.id)
 
 
+
 get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
 
+async def update_all_users_ids() -> None:
+    for i in db_con.User.select().execute():
+        all_users_ids.append(i.id)
+    all_users_ids = list(set(all_users_ids))
 
 async def send_message_to_people(text):
     block_counter = 0
@@ -265,6 +270,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     #schedule.add_job(donate_for_developer, "cron", day="20", hour=21, minute=00)
+    schedule.add_job(update_all_users_ids, "cron", hour=22, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
     schedule.add_job(clear_log_file, "cron", hour="8, 20", minute="1")
