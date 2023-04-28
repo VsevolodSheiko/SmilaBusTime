@@ -97,8 +97,7 @@ async def donate_for_developer():
 <b>Шановні користувачі SmilaBusTime!</b>\n\nРозробник орендує сервер, на якому знаходиться бот, 
 для його постійної роботи. Якщо ви є активним користувачем мого маленького проєкту та він полегшує ваше життя,
 ви можете допомогти назбирати потрібну суму для щомісячної оренди. <u>Я ні в якому разі не примушую вас 
-до такого кроку, ви це робите лише зі свого власного бажання.</u> Також я гарантую, що всі зібрані кошти підуть лише на 
-оплату оренди серверу.\n\nЗ великою подякою, Всеволод - розробник телеграм-боту SmilaBusTime! &#10084\n
+до такого кроку, ви це робите лише зі свого власного бажання.</u>\n\nЗ великою подякою, Всеволод - розробник телеграм-боту SmilaBusTime! &#10084\n
 <a href="https://send.monobank.ua/8DgxnTfLuK">&#128179 Картка монобанку</a>;
     """
     await send_message_to_people(text)
@@ -269,7 +268,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    #schedule.add_job(donate_for_developer, "cron", day="20", hour=21, minute=00)
+    schedule.add_job(donate_for_developer, "cron", day=28, hour=19, minute=25)
     schedule.add_job(update_all_users_ids, "cron", hour=22, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
