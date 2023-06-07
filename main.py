@@ -22,7 +22,7 @@ from location_data import bus_stops
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_test")
+TOKEN = os.environ.get("TOKEN_main")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
