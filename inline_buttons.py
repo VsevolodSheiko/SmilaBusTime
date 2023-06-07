@@ -5,7 +5,10 @@ import os
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
 admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+location_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 delete_old_keyboard = ReplyKeyboardRemove()
+
+
 
 load_dotenv()
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
@@ -40,6 +43,7 @@ list_of_buttons = [
 full_time_button = InlineKeyboardButton('Повний розклад руху', callback_data='full_bus')
 chat_with_developer = InlineKeyboardButton('Написати розробнику', callback_data='chat_to_developer',
                                            url=f"tg://user?id={DEVELOPER_ID}")
+trigger_location_button = InlineKeyboardButton('Найближча зупинка', callback_data='trigger_location')
 
 list_of_admin_buttons = [
     KeyboardButton("Відправити повідомлення"),
@@ -103,13 +107,17 @@ buttons_links = {
 
 }
 
+
+
 for button in list_of_buttons:
     bus_inline_keyboard.insert(button)
 
 bus_inline_keyboard.row(full_time_button)
 bus_inline_keyboard.row(chat_with_developer)
+bus_inline_keyboard.row(trigger_location_button)
 
 for button in list_of_admin_buttons:
     admin_reply_keyboard.insert(button)
 
 confirm_reply_keyboard.add(KeyboardButton("Підтвердити"), KeyboardButton("Назад"))
+location_keyboard.insert(KeyboardButton("Надіслати геолокацію", request_location=True))

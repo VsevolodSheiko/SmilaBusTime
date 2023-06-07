@@ -11,15 +11,18 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import exceptions
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
+from math import sin, cos, sqrt, atan2, radians
 
 import inline_buttons
 import peewee_mysql_connection as db_con
+from location_data import bus_stops
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -145,6 +148,52 @@ async def admin(message: types.Message):
                              reply_markup=inline_buttons.bus_inline_keyboard)
 
 
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Approximate radius of the Earth in kilometers
+    R = 6371.0
+
+    # Convert latitude and longitude from degrees to radians
+    lat1_rad = radians(lat1)
+    lon1_rad = radians(lon1)
+    lat2_rad = radians(lat2)
+    lon2_rad = radians(lon2)
+
+    # Calculate the differences in latitude and longitude
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+
+    # Apply the Haversine formula
+    a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    # Calculate the distance in kilometers
+    distance = R * c
+
+    return distance
+
+
+@dp.message_handler(content_types=types.ContentType.LOCATION)
+async def handle_location(message: types.Message):
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
+    await message.answer(text="Оновлення даних...", reply_markup=inline_buttons.delete_old_keyboard)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
+
+    closest_point = None
+    min_distance = float('inf')
+    location = message.location
+    for point in bus_stops:
+        point_latitude = point[0][0]
+        point_longitude = point[0][1]
+        distance = calculate_distance(location.latitude, location.longitude, point_latitude, point_longitude)
+        if distance < min_distance:
+            min_distance = distance
+            closest_point = point
+    await message.reply_location(latitude=closest_point[0][0], longitude=closest_point[0][1])
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+    await message.answer(text=f"&#128652 Автобусні маршрути: {closest_point[1]}", parse_mode="HTML")
+    
+
+
 @dp.message_handler(content_types=["text"])
 async def admin_send_message(message: types.Message):
     if message.text == "Відправити повідомлення" and message.chat.id == DEVELOPER_ID:
@@ -196,6 +245,11 @@ async def callback_processing(callback_query: types.CallbackQuery):
                                                 parse_mode="HTML")
         elif callback_query.data == "chat_to_developer":
             await callback_query.message.answer(text=f"Написати розробнику", parse_mode="HTML")
+        elif callback_query.data == "trigger_location":
+            await callback_query.message.answer(
+                "Натисніть кнопку знизу, щоб надіслати свою геолокацію. <u>Обов'язково</u> увімкніть на телефоні службу GPS(місцезнаходження)!",
+                reply_markup=inline_buttons.location_keyboard,
+                parse_mode="HTML")
         else:
             bus_name = inline_buttons.dict_of_buttons[f"{callback_query.data}"]
             db_con.route_name = bus_name
@@ -268,7 +322,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    schedule.add_job(donate_for_developer, "cron", day=28, hour=19, minute=25)
+    schedule.add_job(donate_for_developer, "cron", day=20, hour=19, minute=25)
     schedule.add_job(update_all_users_ids, "cron", hour=22, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
