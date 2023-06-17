@@ -46,10 +46,9 @@ def get_all_users_ids() -> None:
     for i in db_con.User.select().execute():
         all_users_ids.append(i.id)
 
-
-
 get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
+
 
 async def update_all_users_ids() -> None:
     for i in db_con.User.select().execute():
@@ -61,7 +60,7 @@ async def send_message_to_people(text):
     for user in all_users_ids:
         try:
             await bot.send_message(chat_id=str(user), text=f"{text}", parse_mode="HTML")
-            await asyncio.sleep(0.7)
+            await asyncio.sleep(0.3)
         except exceptions.BotBlocked:
             block_counter += 1
         except exceptions.ChatNotFound:
@@ -323,10 +322,10 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day=20, hour=19, minute=25)
-    schedule.add_job(update_all_users_ids, "cron", hour=22, minute=00)
+    schedule.add_job(update_all_users_ids, "cron", hour=23, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
-    schedule.add_job(check_log_file_and_send_to_developer, "cron", hour="8, 20")
-    schedule.add_job(clear_log_file, "cron", hour="8, 20", minute="1")
+    schedule.add_job(check_log_file_and_send_to_developer, "cron", hour=22)
+    schedule.add_job(clear_log_file, "cron", hour=22, minute=1)
     schedule.add_job(set_clickers_to_zero, "cron", hour=1)
     schedule.start()
     executor.start_polling(dp, skip_updates=True)
