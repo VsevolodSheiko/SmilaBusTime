@@ -113,8 +113,9 @@ for button in list_of_buttons:
     bus_inline_keyboard.insert(button)
 
 bus_inline_keyboard.row(full_time_button)
-bus_inline_keyboard.row(chat_with_developer)
 bus_inline_keyboard.row(trigger_location_button)
+bus_inline_keyboard.row(chat_with_developer)
+
 
 for button in list_of_admin_buttons:
     admin_reply_keyboard.insert(button)
