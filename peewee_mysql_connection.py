@@ -271,7 +271,7 @@ def get_departure_point_3():
 
 def get_full_departure_time_1():
     bus = process_bus_class(route_name)
-    rows = bus.select()
+    rows = bus.select().order_by(bus.departure_time)
     full_time_list = []
     for row in rows:
         if len(str(row.notes_left)) > 0 and row.departure_time is not None:
@@ -287,7 +287,7 @@ def get_full_departure_time_1():
 
 def get_full_departure_time_2():
     bus = process_bus_class(route_name)
-    rows = bus.select()
+    rows = bus.select().order_by(bus.departure_time_2)
     full_time_list = []
     for row in rows:
         if len(str(row.notes_right)) > 0 and row.departure_time_2 is not None:
@@ -303,7 +303,7 @@ def get_full_departure_time_2():
 
 def get_full_departure_time_3():
     bus = process_bus_class(route_name)
-    rows = bus.select()
+    rows = bus.select().order_by(bus.departure_time_3)
     full_time_list = []
     for row in rows:
         if len(str(row.notes_end)) > 0 and row.departure_time_3 is not None:
