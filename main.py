@@ -22,7 +22,7 @@ from location_data import bus_stops
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -35,18 +35,21 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 class MyStates(StatesGroup):
     waiting_for_message = State()
+    ask_for_photo = State()
+    waiting_for_photo = State()
     sending_the_message = State()
+    
     get_full_buses = State()
 
 
-all_users_ids = []
+all_users_ids = [DEVELOPER_ID]
 
 
 def get_all_users_ids() -> None:
     for i in db_con.User.select().execute():
         all_users_ids.append(i.id)
 
-get_all_users_ids()
+#get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
 
 
@@ -55,11 +58,15 @@ async def update_all_users_ids() -> None:
         all_users_ids.append(i.id)
     all_users_ids = list(set(all_users_ids))
 
-async def send_message_to_people(text):
+
+async def send_message_to_people(text, photo = None):
     block_counter = 0
     for user in all_users_ids:
         try:
-            await bot.send_message(chat_id=str(user), text=f"{text}", parse_mode="HTML")
+            if photo is None:
+                await bot.send_message(chat_id=str(user), text=text, parse_mode="HTML")
+            else:
+                await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
             await asyncio.sleep(0.3)
         except exceptions.BotBlocked:
             block_counter += 1
@@ -166,9 +173,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     # Calculate the distance in kilometers
-    distance = R * c
-
-    return distance
+    return R * c
 
 
 @dp.message_handler(content_types=types.ContentType.LOCATION)
@@ -215,18 +220,41 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
                                  reply_markup=inline_buttons.bus_inline_keyboard)
             await state.finish()
         else:
-            await message.answer(text="Повідомлення отримано. Бажаєте надіслати?",
-                                 reply_markup=inline_buttons.confirm_reply_keyboard)
+            await message.answer(text="Повідомлення отримано. Бажаєте прикріпити фото?",
+                                 reply_markup=inline_buttons.confirm_reply_keyboard_2)
             await MyStates.next()
 
 
+@dp.message_handler(state=MyStates.ask_for_photo)
+async def asking_for_photo_from_admin(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        if message.text == "Ні":
+            await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
+                                 reply_markup=inline_buttons.bus_inline_keyboard)
+            await MyStates.sending_the_message.set()
+        else:
+            await message.answer(text="Будь ласка, надішліть фото.",
+                                 reply_markup=inline_buttons.confirm_reply_keyboard_2)
+            await MyStates.next()
+
+
+@dp.message_handler(state=MyStates.waiting_for_photo)
+async def process_photo_from_admin(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['waiting_for_photo'] = message.photo
+        await message.answer(text="Фото отримано. Бажаєте надіслати?",
+                                reply_markup=inline_buttons.confirm_reply_keyboard)
+        await MyStates.next()
+
+
 @dp.message_handler(state=MyStates.sending_the_message)
-async def process_message_from_admin(message: types.Message, state: FSMContext):
+async def final_message_sending(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         text = data['waiting_for_message']
+        picture = data['waiting_for_photo']
         if message.text == "Підтвердити":
             await state.finish()
-            await send_message_to_people(text)
+            await send_message_to_people(text, picture)
         elif message.text == "Назад":
             await state.finish()
             await bot.send_message(chat_id=DEVELOPER_ID, text="Ви повернулись до головного меню.",
@@ -240,10 +268,14 @@ async def callback_processing(callback_query: types.CallbackQuery):
     try:
         if callback_query.data == "full_bus":
             await MyStates.get_full_buses.set()
-            await callback_query.message.answer(text=f"Натисніть на плитку вище з потрібним номером автобусу &#9650;",
-                                                parse_mode="HTML")
+            await callback_query.message.answer(
+                text="Натисніть на плитку вище з потрібним номером автобусу &#9650;",
+                parse_mode="HTML",
+            )
         elif callback_query.data == "chat_to_developer":
-            await callback_query.message.answer(text=f"Написати розробнику", parse_mode="HTML")
+            await callback_query.message.answer(
+                text="Написати розробнику", parse_mode="HTML"
+            )
         elif callback_query.data == "trigger_location":
             await callback_query.message.answer(
                 "Натисніть кнопку знизу, щоб надіслати свою геолокацію. <u>Обов'язково</u> увімкніть на телефоні службу GPS(місцезнаходження)!",

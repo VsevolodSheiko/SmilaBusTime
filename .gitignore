@@ -10,3 +10,5 @@ userbase_backup.sql
 __pycache__/
 venv/
 peewee_mysql_connection_copy.py
+backup.sql
+dump.sql
