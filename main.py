@@ -271,11 +271,6 @@ async def final_message_sending(message: types.Message, state: FSMContext):
             await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
         await state.finish()
         
-        # Clear dir with downloaded files
-        for file_name in os.listdir("downloaded_content"):
-            file_to_remove = os.path.join("downloaded_content", file_name)
-            if os.path.isfile(file_to_remove):
-                os.remove(file_to_remove)
         
         
 
