@@ -5,6 +5,7 @@ import os
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
 admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+confirm_reply_keyboard_2 = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 location_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 delete_old_keyboard = ReplyKeyboardRemove()
 
@@ -49,6 +50,13 @@ list_of_admin_buttons = [
     KeyboardButton("Відправити повідомлення"),
     KeyboardButton("Назад"),
 ]
+
+
+list_of_admin_buttons_2 = [
+    KeyboardButton("Так"),
+    KeyboardButton("Ні")
+]
+    
 
 
 dict_of_buttons = {
@@ -121,4 +129,5 @@ for button in list_of_admin_buttons:
     admin_reply_keyboard.insert(button)
 
 confirm_reply_keyboard.add(KeyboardButton("Підтвердити"), KeyboardButton("Назад"))
+confirm_reply_keyboard_2.add(KeyboardButton("Так"), KeyboardButton("Ні"))
 location_keyboard.insert(KeyboardButton("Надіслати геолокацію", request_location=True))

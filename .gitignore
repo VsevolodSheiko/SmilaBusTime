@@ -12,3 +12,5 @@ venv/
 peewee_mysql_connection_copy.py
 backup.sql
 dump.sql
+downloaded_content/
+
