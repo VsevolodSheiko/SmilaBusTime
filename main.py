@@ -22,7 +22,7 @@ from location_data import bus_stops
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_test")
+TOKEN = os.environ.get("TOKEN_main")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -32,6 +32,7 @@ logging.basicConfig(filename=log_file, level=logging.ERROR)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
+file_path = None
 
 class MyStates(StatesGroup):
     waiting_for_message = State()
@@ -42,14 +43,14 @@ class MyStates(StatesGroup):
     get_full_buses = State()
 
 
-all_users_ids = [DEVELOPER_ID]
+all_users_ids = []
 
 
 def get_all_users_ids() -> None:
     for i in db_con.User.select().execute():
         all_users_ids.append(i.id)
 
-#get_all_users_ids()
+get_all_users_ids()
 all_users_ids = list(set(all_users_ids))
 
 
@@ -198,14 +199,12 @@ async def handle_location(message: types.Message):
     
 
 
-@dp.message_handler(content_types=["text"])
+@dp.message_handler(content_types=types.ContentType.TEXT)
 async def admin_send_message(message: types.Message):
     if message.text == "Відправити повідомлення" and message.chat.id == DEVELOPER_ID:
         await message.answer("Введіть повідомлення, яке бажаєте відправити:")
         await MyStates.waiting_for_message.set()
-    elif message.text == "Назад":
-        await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
-                             reply_markup=inline_buttons.bus_inline_keyboard)
+    
     else:
         await message.answer(text="Вибачте, виникла помилка. Спробуйте ще раз.",
                              reply_markup=inline_buttons.bus_inline_keyboard)
@@ -222,46 +221,63 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
         else:
             await message.answer(text="Повідомлення отримано. Бажаєте прикріпити фото?",
                                  reply_markup=inline_buttons.confirm_reply_keyboard_2)
-            await MyStates.next()
+            await MyStates.ask_for_photo.set()
 
 
 @dp.message_handler(state=MyStates.ask_for_photo)
 async def asking_for_photo_from_admin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if message.text == "Ні":
-            await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
-                                 reply_markup=inline_buttons.bus_inline_keyboard)
+            await message.answer(text="Бажаєте надіслати повідомлення?",
+                                 reply_markup=inline_buttons.confirm_reply_keyboard)
             await MyStates.sending_the_message.set()
         else:
-            await message.answer(text="Будь ласка, надішліть фото.",
-                                 reply_markup=inline_buttons.confirm_reply_keyboard_2)
-            await MyStates.next()
+            await message.answer(text="Будь ласка, надішліть фото.")
+            await MyStates.waiting_for_photo.set()
 
 
-@dp.message_handler(state=MyStates.waiting_for_photo)
+@dp.message_handler(state=MyStates.waiting_for_photo, content_types=types.ContentType.PHOTO)
 async def process_photo_from_admin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['waiting_for_photo'] = message.photo
+        
+        # Create directory to save received images
+        DOWNLOADS_DIR = "downloaded_content"  
+        if not os.path.exists(DOWNLOADS_DIR):
+            os.makedirs(DOWNLOADS_DIR)
+        picture = message.photo[-1]
+        file_unique_id = picture.file_unique_id
+
+        # Download the photo to the specified directory
+        global file_path
+        file_path = os.path.join(DOWNLOADS_DIR, f"{file_unique_id}.jpg")
+        await picture.download(destination_file=file_path)
         await message.answer(text="Фото отримано. Бажаєте надіслати?",
-                                reply_markup=inline_buttons.confirm_reply_keyboard)
-        await MyStates.next()
+                                reply_markup=inline_buttons.confirm_reply_keyboard_2)
+        await MyStates.sending_the_message.set()
 
 
 @dp.message_handler(state=MyStates.sending_the_message)
 async def final_message_sending(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        text = data['waiting_for_message']
-        picture = data['waiting_for_photo']
-        if message.text == "Підтвердити":
-            await state.finish()
-            await send_message_to_people(text, picture)
-        elif message.text == "Назад":
-            await state.finish()
-            await bot.send_message(chat_id=DEVELOPER_ID, text="Ви повернулись до головного меню.",
-                                   reply_markup=inline_buttons.admin_reply_keyboard)
-            await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
+        if message.text == "Так":
+            with open(file_path, 'rb') as photo_file:
+                await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+        elif message.text == "Ні":
+            await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
                                  reply_markup=inline_buttons.bus_inline_keyboard)
-
+        elif message.text == "Підтвердити":
+            await send_message_to_people(text=data["waiting_for_message"])
+        else:
+            await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
+        await state.finish()
+        
+        # Clear dir with downloaded files
+        for file_name in os.listdir("downloaded_content"):
+            file_to_remove = os.path.join("downloaded_content", file_name)
+            if os.path.isfile(file_to_remove):
+                os.remove(file_to_remove)
+        
+        
 
 @dp.callback_query_handler()
 async def callback_processing(callback_query: types.CallbackQuery):
