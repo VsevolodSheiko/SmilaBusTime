@@ -11,7 +11,6 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import exceptions
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from math import sin, cos, sqrt, atan2, radians
@@ -259,20 +258,18 @@ async def process_photo_from_admin(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MyStates.sending_the_message)
 async def final_message_sending(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        if message.text == "Так":
-            with open(file_path, 'rb') as photo_file:
-                await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
-        elif message.text == "Ні":
-            await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
-                                 reply_markup=inline_buttons.bus_inline_keyboard)
-        elif message.text == "Підтвердити":
-            await send_message_to_people(text=data["waiting_for_message"])
-        else:
-            await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
-        await state.finish()
-        
-        
-        
+        with open(file_path, 'rb') as photo_file:
+            if message.text == "Так":
+                    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+            elif message.text == "Ні":
+                await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
+                                    reply_markup=inline_buttons.bus_inline_keyboard)
+            elif message.text == "Підтвердити":
+                await send_message_to_people(text=data["waiting_for_message"])
+            else:
+                await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
+            await state.finish()
+
 
 @dp.callback_query_handler()
 async def callback_processing(callback_query: types.CallbackQuery):
@@ -364,7 +361,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
-    schedule.add_job(donate_for_developer, "cron", day=25, hour=21)
+    schedule.add_job(donate_for_developer, "cron", day=25, hour=20)
     schedule.add_job(update_all_users_ids, "cron", hour=23, minute=00)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour=22)
