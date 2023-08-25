@@ -258,17 +258,19 @@ async def process_photo_from_admin(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MyStates.sending_the_message)
 async def final_message_sending(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        with open(file_path, 'rb') as photo_file:
-            if message.text == "Так":
-                    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
-            elif message.text == "Ні":
-                await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
-                                    reply_markup=inline_buttons.bus_inline_keyboard)
-            elif message.text == "Підтвердити":
-                await send_message_to_people(text=data["waiting_for_message"])
-            else:
-                await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
-            await state.finish()
+        if message.text == "Так":
+            with open(file_path, 'rb') as photo_file:
+                photo_data = photo_file.read()
+                await send_message_to_people(text=data["waiting_for_message"], photo=photo_data)
+        elif message.text == "Ні":
+            await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
+                                reply_markup=inline_buttons.bus_inline_keyboard)
+        elif message.text == "Підтвердити":
+            await send_message_to_people(text=data["waiting_for_message"])
+        else:
+            await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
+        await state.finish()
+            
 
 
 @dp.callback_query_handler()

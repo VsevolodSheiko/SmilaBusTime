@@ -1,0 +1,160 @@
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-32' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py:407> exception=ValueError('I/O operation on closed file')>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 263, in final_message_sending
+    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 69, in send_message_to_people
+    await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/bot.py", line 565, in send_photo
+    result = await self.request(api.Methods.SEND_PHOTO, payload, files)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/api.py", line 139, in make_request
+    async with session.post(url, data=req, **kwargs) as response:
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 508, in _request
+    req = self._request_class(
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 313, in __init__
+    self.update_body_from_data(data)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 505, in update_body_from_data
+    body = body()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 170, in __call__
+    return self._gen_form_data()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 163, in _gen_form_data
+    self._writer.append_payload(part)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/multipart.py", line 829, in append_payload
+    size = payload.size
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/payload.py", line 379, in size
+    return os.fstat(self._value.fileno()).st_size - self._value.tell()
+ValueError: I/O operation on closed file
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-32' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py:407> exception=ValueError('I/O operation on closed file')>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 264, in final_message_sending
+    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 69, in send_message_to_people
+    await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/bot.py", line 565, in send_photo
+    result = await self.request(api.Methods.SEND_PHOTO, payload, files)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/api.py", line 139, in make_request
+    async with session.post(url, data=req, **kwargs) as response:
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 508, in _request
+    req = self._request_class(
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 313, in __init__
+    self.update_body_from_data(data)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 505, in update_body_from_data
+    body = body()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 170, in __call__
+    return self._gen_form_data()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 163, in _gen_form_data
+    self._writer.append_payload(part)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/multipart.py", line 829, in append_payload
+    size = payload.size
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/payload.py", line 379, in size
+    return os.fstat(self._value.fileno()).st_size - self._value.tell()
+ValueError: I/O operation on closed file
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-33' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py:407> exception=ValueError('I/O operation on closed file')>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 264, in final_message_sending
+    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 69, in send_message_to_people
+    await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/bot.py", line 565, in send_photo
+    result = await self.request(api.Methods.SEND_PHOTO, payload, files)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/api.py", line 139, in make_request
+    async with session.post(url, data=req, **kwargs) as response:
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 508, in _request
+    req = self._request_class(
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 313, in __init__
+    self.update_body_from_data(data)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 505, in update_body_from_data
+    body = body()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 170, in __call__
+    return self._gen_form_data()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 163, in _gen_form_data
+    self._writer.append_payload(part)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/multipart.py", line 829, in append_payload
+    size = payload.size
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/payload.py", line 379, in size
+    return os.fstat(self._value.fileno()).st_size - self._value.tell()
+ValueError: I/O operation on closed file
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-35' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py:407> exception=ValueError('I/O operation on closed file')>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/dispatcher/handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 263, in final_message_sending
+    await send_message_to_people(text=data["waiting_for_message"], photo=photo_file)
+  File "/home/vsevolod/Стільниця/SmilaBusTime_test/main.py", line 69, in send_message_to_people
+    await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/bot.py", line 565, in send_photo
+    result = await self.request(api.Methods.SEND_PHOTO, payload, files)
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/dist-packages/aiogram/bot/api.py", line 139, in make_request
+    async with session.post(url, data=req, **kwargs) as response:
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client.py", line 508, in _request
+    req = self._request_class(
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 313, in __init__
+    self.update_body_from_data(data)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/client_reqrep.py", line 505, in update_body_from_data
+    body = body()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 170, in __call__
+    return self._gen_form_data()
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/formdata.py", line 163, in _gen_form_data
+    self._writer.append_payload(part)
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/multipart.py", line 829, in append_payload
+    size = payload.size
+  File "/usr/local/lib/python3.10/dist-packages/aiohttp/payload.py", line 379, in size
+    return os.fstat(self._value.fileno()).st_size - self._value.tell()
+ValueError: I/O operation on closed file
