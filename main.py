@@ -134,7 +134,6 @@ async def start(message: types.Message):
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
     await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                          reply_markup=inline_buttons.bus_inline_keyboard)
-    print(datetime.datetime.now().date(), all_users_ids, sep="\n")
     if message.from_user.id not in all_users_ids:
         db_con.User.insert(id=message.from_user.id,
                            username=message.from_user.username,
@@ -368,7 +367,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day=25, hour=20)
-    schedule.add_job(get_all_users_ids, "interval", seconds=15)
+    schedule.add_job(get_all_users_ids, "interval", hour=2)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour=22)
     schedule.add_job(clear_log_file, "cron", hour=22, minute=1)
