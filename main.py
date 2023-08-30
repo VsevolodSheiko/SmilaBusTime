@@ -367,7 +367,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day=25, hour=20)
-    schedule.add_job(get_all_users_ids, "interval", hour=2)
+    schedule.add_job(get_all_users_ids, "interval", hours=2)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour=22)
     schedule.add_job(clear_log_file, "cron", hour=22, minute=1)
