@@ -21,7 +21,7 @@ from location_data import bus_stops
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN_main")
+TOKEN = os.environ.get("TOKEN_test")
 DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
@@ -46,17 +46,15 @@ all_users_ids = []
 
 
 def get_all_users_ids() -> None:
+    global all_users_ids
+    all_users_ids.clear()
     for i in db_con.User.select().execute():
         all_users_ids.append(i.id)
+    if len(all_users_ids) != 0:
+        all_users_ids = list(set(all_users_ids))
+    
 
 get_all_users_ids()
-all_users_ids = list(set(all_users_ids))
-
-
-async def update_all_users_ids() -> None:
-    for i in db_con.User.select().execute():
-        all_users_ids.append(i.id)
-    all_users_ids = list(set(all_users_ids))
 
 
 async def send_message_to_people(text, photo = None):
@@ -64,19 +62,22 @@ async def send_message_to_people(text, photo = None):
     for user in all_users_ids:
         try:
             if photo is None:
-                await bot.send_message(chat_id=str(user), text=text, parse_mode="HTML")
+                await bot.send_message(chat_id=user, text=text, parse_mode="HTML")
             else:
-                await bot.send_photo(chat_id=str(user), photo=photo, caption=text, parse_mode="HTML")
+                await bot.send_photo(chat_id=user, photo=photo, caption=text, parse_mode="HTML")
             await asyncio.sleep(0.3)
         except exceptions.BotBlocked:
             block_counter += 1
+            db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.ChatNotFound:
             block_counter += 1
+            db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.RetryAfter as e:
             block_counter += 1
             await asyncio.sleep(e.timeout)
         except exceptions.UserDeactivated:
             block_counter += 1
+            db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.TelegramAPIError:
             block_counter += 1
         else:
@@ -133,12 +134,14 @@ async def start(message: types.Message):
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
     await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                          reply_markup=inline_buttons.bus_inline_keyboard)
+    print(datetime.datetime.now().date(), all_users_ids, sep="\n")
     if message.from_user.id not in all_users_ids:
         db_con.User.insert(id=message.from_user.id,
                            username=message.from_user.username,
                            first_name=message.from_user.first_name,
                            last_name=message.from_user.last_name,
-                           date=datetime.datetime.now().date()).execute()
+                           date=datetime.datetime.now().date(),
+                           location=None).execute()
     else:
         db_con.User.update(date=datetime.datetime.now().date()).where(db_con.User.id == message.from_user.id).execute()
 
@@ -184,17 +187,18 @@ async def handle_location(message: types.Message):
 
     closest_point = None
     min_distance = float('inf')
-    location = message.location
+    location_global = message.location
     for point in bus_stops:
         point_latitude = point[0][0]
         point_longitude = point[0][1]
-        distance = calculate_distance(location.latitude, location.longitude, point_latitude, point_longitude)
+        distance = calculate_distance(location_global.latitude, location_global.longitude, point_latitude, point_longitude)
         if distance < min_distance:
             min_distance = distance
             closest_point = point
     await message.reply_location(latitude=closest_point[0][0], longitude=closest_point[0][1])
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     await message.answer(text=f"&#128652 Автобусні маршрути: {closest_point[1]}", parse_mode="HTML")
+    db_con.User.update(location = f"{location_global.latitude} {location_global.longitude}").where(db_con.User.id == message.from_user.id).execute()
     
 
 
@@ -364,7 +368,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 if __name__ == "__main__":
     schedule = AsyncIOScheduler()
     schedule.add_job(donate_for_developer, "cron", day=25, hour=20)
-    schedule.add_job(update_all_users_ids, "cron", hour=23, minute=00)
+    schedule.add_job(get_all_users_ids, "interval", seconds=15)
     schedule.add_job(help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     schedule.add_job(check_log_file_and_send_to_developer, "cron", hour=22)
     schedule.add_job(clear_log_file, "cron", hour=22, minute=1)

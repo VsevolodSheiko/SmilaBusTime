@@ -33,11 +33,12 @@ class Clicker(Model):
 
 
 class User(Model):
-    id = BigIntegerField(primary_key=False, null=True)
+    id = IntegerField(primary_key=False, null=True)
     username = CharField(max_length=255, null=True)
     first_name = CharField(max_length=255, null=True)
     last_name = CharField(max_length=255, null=True)
     date = DateField()
+    location = CharField(max_length=255, null=True)
 
     class Meta:
         database = db
