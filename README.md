@@ -36,7 +36,6 @@ If you'd like to contribute to the SmilaBusTime project, please follow these gui
 2. Create a new branch:
     '''shell
     git checkout -b feature/your-feature
-    '''
 3. Make your changes, commit them, and push to your forked repository.
 4. Create a pull request to submit your changes for review.
 
