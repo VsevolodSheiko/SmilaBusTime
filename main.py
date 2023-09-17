@@ -263,16 +263,16 @@ async def process_photo_from_admin(message: types.Message, state: FSMContext):
 async def final_message_sending(callback_query: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         if callback_query.data == "yes":
-                await send_message_to_people(text=data["waiting_for_message"], photo=user_photo_id)
-        elif callback_query.data == "no":
+            await send_message_to_people(text=data["waiting_for_message"], photo=user_photo_id)
+        elif callback_query.data in ["no", "back"]:
             await callback_query.message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
                                 reply_markup=inline_buttons.bus_inline_keyboard)
         elif callback_query.data == "accept":
             await send_message_to_people(text=data["waiting_for_message"])
         else:
             await callback_query.message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
-        await callback_query.answer()
-        await state.finish()
+    await callback_query.answer()
+    await state.finish()
     
             
 
