@@ -39,6 +39,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 
 class MyStates(StatesGroup):
+    admin = State()
     waiting_for_message = State()
     ask_for_photo = State()
     waiting_for_photo = State()
@@ -152,13 +153,15 @@ async def start(message: types.Message):
 
 
 @dp.message_handler(Command("admin"))
-async def admin(message: types.Message):
+async def admin(message: types.Message, state: FSMContext):
     if message.chat.id == DEVELOPER_ID:
         await message.answer(text="Вітаю у адмін-панелі розробника.",
                              reply_markup=inline_buttons.admin_reply_keyboard)
+        await state.set_state(MyStates.admin)
     else:
         await message.answer(text="У вас немає доступу до адміністративної панелі.",
                              reply_markup=inline_buttons.bus_inline_keyboard)
+    
 
 
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -185,10 +188,6 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 @dp.message_handler(content_types=types.ContentType.LOCATION)
 async def handle_location(message: types.Message):
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id - 1)
-    await message.answer(text="Оновлення даних...", reply_markup=inline_buttons.delete_old_keyboard)
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
-
     closest_point = None
     min_distance = float('inf')
     location_global = message.location
@@ -206,15 +205,20 @@ async def handle_location(message: types.Message):
     
 
 
-@dp.callback_query_handler()
+@dp.callback_query_handler(state=MyStates.admin)
 async def admin_send_message(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.data == "admin_message" and callback_query.message.chat.id == DEVELOPER_ID:
         await callback_query.message.answer("Введіть повідомлення, яке бажаєте відправити:")
         await state.set_state(MyStates.waiting_for_message)
-    
+    elif callback_query.data == "back" and callback_query.message.chat.id == DEVELOPER_ID:
+        await callback_query.message.answer(
+            "Ви вийшли з режиму адміна.",
+            reply_markup=inline_buttons.bus_inline_keyboard)
     else:
-        await callback_query.message.answer(text="Виникла помилка. Спробуйте ще раз.",
-                             reply_markup=inline_buttons.bus_inline_keyboard)
+        await callback_query.message.answer(
+            text="Виникла помилка. Спробуйте ще раз.",
+            reply_markup=inline_buttons.bus_inline_keyboard)
+        await state.finish()
     await callback_query.answer()
 
 
