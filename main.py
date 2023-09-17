@@ -26,12 +26,17 @@ DEVELOPER_ID = int(os.environ.get("DEVELOPER_ID"))
 
 # Set up logging
 log_file = 'bot_errors.log'
-logging.basicConfig(filename=log_file, level=logging.ERROR)
+logging.basicConfig(
+    filename=log_file,
+    level=logging.ERROR,
+    format='%(asctime)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-file_path = None
 
 class MyStates(StatesGroup):
     waiting_for_message = State()
@@ -58,7 +63,7 @@ get_all_users_ids()
 
 
 async def send_message_to_people(text, photo = None):
-    block_counter = 0
+    bot_blocked, chat_not_found, retry_after, user_deactivated, telegram_api_error = 0, 0, 0, 0, 0
     for user in all_users_ids:
         try:
             if photo is None:
@@ -67,22 +72,23 @@ async def send_message_to_people(text, photo = None):
                 await bot.send_photo(chat_id=user, photo=photo, caption=text, parse_mode="HTML")
             await asyncio.sleep(0.3)
         except exceptions.BotBlocked:
-            block_counter += 1
+            bot_blocked += 1
             db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.ChatNotFound:
-            block_counter += 1
+            chat_not_found += 1
             db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.RetryAfter as e:
-            block_counter += 1
+            retry_after += 1
             await asyncio.sleep(e.timeout)
         except exceptions.UserDeactivated:
-            block_counter += 1
+            user_deactivated += 1
             db_con.User.delete().where(db_con.User.id == user).execute()
         except exceptions.TelegramAPIError:
-            block_counter += 1
-        else:
-            pass
-    await bot.send_message(chat_id=DEVELOPER_ID, text=f"{block_counter} people blocked your bot", parse_mode="HTML")
+            telegram_api_error += 1
+    await bot.send_message(
+        chat_id=DEVELOPER_ID, 
+        text=f"Після останнього вашого повідомлення маємо наступну статистику: \nBotBlocked = {bot_blocked}\nChatNotFound = {chat_not_found}\nRetryAfter = {retry_after}\nUserDeactivated = {user_deactivated}\nTelegramAPIError = {telegram_api_error}",
+        parse_mode="HTML")
 
 
 async def check_log_file_and_send_to_developer():
@@ -150,9 +156,8 @@ async def admin(message: types.Message):
     if message.chat.id == DEVELOPER_ID:
         await message.answer(text="Вітаю у адмін-панелі розробника.",
                              reply_markup=inline_buttons.admin_reply_keyboard)
-
     else:
-        await message.answer(text="На жаль, у вас немає доступу до адміністративної панелі.",
+        await message.answer(text="У вас немає доступу до адміністративної панелі.",
                              reply_markup=inline_buttons.bus_inline_keyboard)
 
 
@@ -201,19 +206,21 @@ async def handle_location(message: types.Message):
     
 
 
-@dp.message_handler(content_types=types.ContentType.TEXT)
-async def admin_send_message(message: types.Message):
-    if message.text == "Відправити повідомлення" and message.chat.id == DEVELOPER_ID:
-        await message.answer("Введіть повідомлення, яке бажаєте відправити:")
-        await MyStates.waiting_for_message.set()
+@dp.callback_query_handler()
+async def admin_send_message(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "admin_message" and callback_query.message.chat.id == DEVELOPER_ID:
+        await callback_query.message.answer("Введіть повідомлення, яке бажаєте відправити:")
+        await state.set_state(MyStates.waiting_for_message)
     
     else:
-        await message.answer(text="Вибачте, виникла помилка. Спробуйте ще раз.",
+        await callback_query.message.answer(text="Виникла помилка. Спробуйте ще раз.",
                              reply_markup=inline_buttons.bus_inline_keyboard)
+    await callback_query.answer()
 
 
 @dp.message_handler(state=MyStates.waiting_for_message)
 async def process_message_from_admin(message: types.Message, state: FSMContext):
+    print(state.proxy())
     async with state.proxy() as data:
         data['waiting_for_message'] = message.text
         if message.text == "Назад":
@@ -223,58 +230,47 @@ async def process_message_from_admin(message: types.Message, state: FSMContext):
         else:
             await message.answer(text="Повідомлення отримано. Бажаєте прикріпити фото?",
                                  reply_markup=inline_buttons.confirm_reply_keyboard_2)
-            await MyStates.ask_for_photo.set()
+            await state.set_state(MyStates.ask_for_photo)
 
 
-@dp.message_handler(state=MyStates.ask_for_photo)
-async def asking_for_photo_from_admin(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        if message.text == "Ні":
-            await message.answer(text="Бажаєте надіслати повідомлення?",
-                                 reply_markup=inline_buttons.confirm_reply_keyboard)
-            await MyStates.sending_the_message.set()
-        else:
-            await message.answer(text="Будь ласка, надішліть фото.")
-            await MyStates.waiting_for_photo.set()
+@dp.callback_query_handler(state=MyStates.ask_for_photo)
+async def asking_for_photo_from_admin(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "no":
+        await callback_query.message.answer(text="Бажаєте надіслати повідомлення?",
+                                reply_markup=inline_buttons.confirm_reply_keyboard)
+        await state.set_state(MyStates.sending_the_message)
+    else:
+        await callback_query.message.answer(text="Будь ласка, надішліть фото.")
+        await state.set_state(MyStates.waiting_for_photo)
+    await callback_query.answer()
 
 
 @dp.message_handler(state=MyStates.waiting_for_photo, content_types=types.ContentType.PHOTO)
 async def process_photo_from_admin(message: types.Message, state: FSMContext):
+    
+    global user_photo_id
+    user_photo_id = message.photo[-1].file_id
+    await message.answer(text="Фото отримано. Бажаєте надіслати?",
+                            reply_markup=inline_buttons.confirm_reply_keyboard_2)
+    await state.set_state(MyStates.sending_the_message)
+
+
+@dp.callback_query_handler(state=MyStates.sending_the_message)
+async def final_message_sending(callback_query: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        
-        # Create directory to save received images
-        DOWNLOADS_DIR = "downloaded_content"  
-        if not os.path.exists(DOWNLOADS_DIR):
-            os.makedirs(DOWNLOADS_DIR)
-        picture = message.photo[-1]
-        file_unique_id = picture.file_unique_id
-
-        # Download the photo to the specified directory
-        global file_path
-        file_path = os.path.join(DOWNLOADS_DIR, f"{file_unique_id}.jpg")
-        await picture.download(destination_file=file_path)
-        await message.answer(text="Фото отримано. Бажаєте надіслати?",
-                                reply_markup=inline_buttons.confirm_reply_keyboard_2)
-        await MyStates.sending_the_message.set()
-
-
-@dp.message_handler(state=MyStates.sending_the_message)
-async def final_message_sending(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        if message.text == "Так":
-            with open(file_path, 'rb') as photo_file:
-                photo_data = photo_file.read()
-                await send_message_to_people(text=data["waiting_for_message"], photo=photo_data)
-        elif message.text == "Ні":
-            await message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
+        if callback_query.data == "yes":
+                await send_message_to_people(text=data["waiting_for_message"], photo=user_photo_id)
+        elif callback_query.data == "no":
+            await callback_query.message.answer("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
                                 reply_markup=inline_buttons.bus_inline_keyboard)
-        elif message.text == "Підтвердити":
+        elif callback_query.data == "accept":
             await send_message_to_people(text=data["waiting_for_message"])
         else:
-            await message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
+            await callback_query.message.answer("Вибачте, виникла помилка.", reply_markup=inline_buttons.bus_inline_keyboard)
+        await callback_query.answer()
         await state.finish()
+    
             
-
 
 @dp.callback_query_handler()
 async def callback_processing(callback_query: types.CallbackQuery):

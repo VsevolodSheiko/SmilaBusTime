@@ -3,9 +3,9 @@ from dotenv import load_dotenv
 import os
 
 bus_inline_keyboard = InlineKeyboardMarkup(row_width=6)
-admin_reply_keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-confirm_reply_keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-confirm_reply_keyboard_2 = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+admin_reply_keyboard = InlineKeyboardMarkup(row_width=1)
+confirm_reply_keyboard = InlineKeyboardMarkup()
+confirm_reply_keyboard_2 = InlineKeyboardMarkup()
 location_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 delete_old_keyboard = ReplyKeyboardRemove()
 
@@ -47,16 +47,9 @@ chat_with_developer = InlineKeyboardButton('Написати розробник�
 trigger_location_button = InlineKeyboardButton('Найближча зупинка', callback_data='trigger_location')
 
 list_of_admin_buttons = [
-    KeyboardButton("Відправити повідомлення"),
-    KeyboardButton("Назад"),
+    InlineKeyboardButton("Відправити повідомлення", callback_data="admin_message"),
+    InlineKeyboardButton("Назад", callback_data="admin_cancel"),
 ]
-
-
-list_of_admin_buttons_2 = [
-    KeyboardButton("Так"),
-    KeyboardButton("Ні")
-]
-    
 
 
 dict_of_buttons = {
@@ -115,8 +108,6 @@ buttons_links = {
 
 }
 
-
-
 for button in list_of_buttons:
     bus_inline_keyboard.insert(button)
 
@@ -128,6 +119,13 @@ bus_inline_keyboard.row(chat_with_developer)
 for button in list_of_admin_buttons:
     admin_reply_keyboard.insert(button)
 
-confirm_reply_keyboard.add(KeyboardButton("Підтвердити"), KeyboardButton("Назад"))
-confirm_reply_keyboard_2.add(KeyboardButton("Так"), KeyboardButton("Ні"))
+confirm_reply_keyboard.add(
+    InlineKeyboardButton("Підтвердити", callback_data="accept"),
+    InlineKeyboardButton("Назад", callback_data="back")
+)
+
+confirm_reply_keyboard_2.add(
+    InlineKeyboardButton("Так", callback_data="yes"),
+    InlineKeyboardButton("Ні", callback_data="no")
+)
 location_keyboard.insert(KeyboardButton("Надіслати геолокацію", request_location=True))
