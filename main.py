@@ -12,7 +12,7 @@ from handlers.callback_handlers import router as callback_router
 from handlers.command_handlers import router as command_router
 from handlers.message_handlers import router as message_router
 
-TOKEN = str(config("TOKEN_test"))
+TOKEN = str(config("TOKEN_main"))
 
 
 # Set up logging
