@@ -14,17 +14,27 @@ async def admin_send_message(callback_query: types.CallbackQuery, state: FSMCont
     if callback_query.data == "admin_message":
         await callback_query.message.edit_text("Введіть повідомлення, яке бажаєте відправити:")
         await state.set_state(MyStates.waiting_for_message)
+    
+    elif callback_query.data == "update_route":
+        await callback_query.message.edit_text(
+            'Оберіть номер автобусу для змін:',
+            reply_markup=await keyboards.bus_keyboard(True)
+            )
+        await state.set_state(MyStates.update_route_get_buses)
+    
     elif callback_query.data == "back":
         await callback_query.message.edit_text(
             "Ви вийшли з режиму адміна.",
             reply_markup=await keyboards.bus_keyboard()
             )
         await state.finish()
+    
     else:
         await callback_query.message.answer(
             text="Виникла помилка. Спробуйте ще раз.",
             reply_markup=await keyboards.bus_keyboard())
         await state.clear()
+    
     await callback_query.answer()
 
 
@@ -56,6 +66,35 @@ async def final_message_sending(callback_query: types.CallbackQuery, state: FSMC
     await state.finish()
 
 
+@router.callback_query(MyStates.update_route_get_buses) 
+async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    bus_name = callback_query.data
+    db_con.route_name = bus_name
+
+    await state.update_data(bus_route=callback_query.data)
+    await callback_query.message.edit_text('Оберіть колонку, дані поля в якій бажаєте змінити:', reply_markup=await keyboards.admin_update_route_columns())
+    await state.set_state(MyStates.update_route_choose_column)
+    await callback_query.answer()
+
+
+@router.callback_query(MyStates.update_route_choose_column)
+async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    bus_column=callback_query.data
+    await state.update_data(bus_column=bus_column)
+    
+    await callback_query.message.edit_text("Оберіть поле, дані в якому бажаєте змінити:", reply_markup=await keyboards.admin_update_route_field(bus_column))
+    await state.set_state(MyStates.update_route_choose_field)
+    await callback_query.answer()
+
+
+@router.callback_query(MyStates.update_route_choose_field)
+async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    await state.update_data(bus_field=callback_query.data)
+    await callback_query.message.edit_text("Введіть нові дані: ")
+    await state.set_state(MyStates.update_route_new_data)
+    await callback_query.answer()
+
+
 @router.callback_query(F.data == "full_bus")
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     await callback_query.message.answer(
@@ -66,10 +105,10 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
     await callback_query.answer()
 
 
-@router.callback_query(MyStates.get_full_buses, F.data.startswith("button_"))
+@router.callback_query(MyStates.get_full_buses, F.data.startswith("route_"))
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     try:
-        bus_name = keyboards.dict_of_buttons[callback_query.data][0]
+        bus_name = callback_query.data
         db_con.route_name = bus_name
         if bus_name == "route_3":
             message_text = (f"""
@@ -107,10 +146,10 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
     await callback_query.answer()
 
 
-@router.callback_query(F.data.startswith("button"))
+@router.callback_query(F.data.startswith("route"))
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     try:
-        bus_name = keyboards.dict_of_buttons[f"{callback_query.data}"][0]
+        bus_name = callback_query.data
         db_con.route_name = bus_name
         await db_con.get_and_update_clicks(bus_name)
         if bus_name == "route_3":
@@ -138,7 +177,7 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 <b>{await db_con.get_departure_time_after_now_2()} {await db_con.get_notes_right_after_now()} </b>із зупинки "{await db_con.get_departure_point_2()}"\n
 &#x1F4C5 <b>Дні курсування</b>: {await db_con.get_days()}"""
                                 )
-        route_google_maps = keyboards.dict_of_buttons[callback_query.data][1]
+        route_google_maps = keyboards.dict_of_buttons[callback_query.data]
         await callback_query.message.answer(text=f'<a href="{route_google_maps}">&#128506 Маршрут автобуса на карті</a>')
         await callback_query.message.answer(text=message_text,
                                             reply_markup=await keyboards.bus_keyboard())

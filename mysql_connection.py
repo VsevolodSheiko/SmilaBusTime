@@ -1,11 +1,10 @@
-
-from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Date, Time, select, delete, update, insert
+import asyncio
+from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Date, Time, select, delete, update, insert, inspect
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from decouple import config
 from datetime import datetime
 
-import keyboards
 
 DATABASE_PASSWORD = config("DATABASE_PASSWORD")
 DATABASE_NAME = config("DATABASE_NAME")
@@ -35,7 +34,7 @@ class User(Base):
     username = Column(String(length=255), nullable=True)
     first_name = Column(String(length=255), nullable=True)
     last_name = Column(String(length=255), nullable=True)
-    date = Column(Date())
+    date = Column(Date)
     location = Column(String(length=255), nullable=True)
 
 
@@ -43,8 +42,9 @@ async def create_bus_class(table_name):
     class Bus(Base):
         __tablename__ = table_name
         __table_args__ = {'extend_existing': True}
-
-        departure_time = Column(Time, nullable=True, primary_key=True)
+        
+        id = Column(Integer, primary_key=True)
+        departure_time = Column(Time, nullable=True)
         notes_left = Column(String(length=255), nullable=True)
         departure_time_2 = Column(Time, nullable=True)
         notes_right = Column(String(length=255), nullable=True)
@@ -402,8 +402,11 @@ async def get_and_update_clicks(bus_name):
 async def set_clickers_to_zero():
     async with AsyncSession(engine) as session:
         async with session.begin():
-            for i in keyboards.dict_of_buttons.values():
-                stmt = update(Clicker).where(Clicker.route_name == i).values(0)
+            stmt = select(Clicker.route_name)
+            result = await session.execute(stmt)
+            data = result.scalars().all()
+            for i in data:
+                stmt = update(Clicker).where(data == i).values(clicks = 0)
                 await session.execute(stmt)
 
 
@@ -431,9 +434,61 @@ async def get_all_users_ids() -> None:
             all_users_ids = list(all_users_ids)
 
 
-async def update_location(telegram_id, message, location_global):
+async def update_location(message, location_global):
     async with AsyncSession(engine) as session:
         async with session.begin():
 
             stmt = update(User).where(User.telegram_id == message.from_user.id).values(location=f"{location_global.latitude} {location_global.longitude}")
             result = await session.execute(stmt)
+
+
+async def get_bus_columns():
+    global route_name
+    bus = await create_bus_class(route_name)
+
+    inspector = inspect(bus)
+    column_names = [column.key for column in inspector.c]
+
+    return column_names
+
+
+async def get_bus_fields(column):
+    global route_name
+    bus = await create_bus_class(route_name)
+    async with AsyncSession(engine) as session:
+        async with session.begin():
+            selected_column = getattr(bus, column, None)
+
+            stmt = select(selected_column)
+            result = await session.execute(stmt)
+            data = [fields for fields in result.scalars().all()]
+
+            return data
+
+
+async def get_row_id_by_column_and_field(column, field):
+    global route_name
+    bus = await create_bus_class(route_name)
+    async with AsyncSession(engine) as session:
+        async with session.begin():
+            
+            bus_column = getattr(bus, column)
+
+            stmt = select(bus.id).where(bus_column == column)
+            result = await session.execute(stmt)
+            data = [fields for fields in result.scalars().all()]
+
+            return data
+
+
+async def update_data_in_bus_route(column, old_data, new_data):
+    global route_name
+    bus = await create_bus_class(route_name)
+    async with AsyncSession(engine) as session:
+        async with session.begin():
+            bus_column = getattr(bus, column)
+            print(bus_column)
+
+            stmt = update(bus).where(bus_column == old_data).values(bus_column = new_data)
+            await session.execute(stmt)
+

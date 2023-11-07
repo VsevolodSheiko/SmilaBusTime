@@ -7,7 +7,6 @@ from decouple import config
 
 import handlers.other_functions as other_func
 import mysql_connection as db
-import keyboards
 
 from handlers.callback_handlers import router as callback_router
 from handlers.command_handlers import router as command_router

@@ -43,3 +43,14 @@ async def process_photo_from_admin(message: types.Message, state: FSMContext):
     await state.set_state(MyStates.sending_the_message)
 
 
+@router.message(MyStates.update_route_new_data)
+async def process_photo_from_admin(message: types.Message, state: FSMContext):
+    await state.update_data(new_data = message.text)
+    route_data = await state.get_data()
+    await db_con.update_data_in_bus_route(
+        route_data['bus_column'],
+        route_data['bus_field'],
+        route_data['new_data']
+    )
+    await message.answer("Дані були успішно оновлені!")
+    await state.clear()
