@@ -1,11 +1,13 @@
 from aiogram.fsm.context import FSMContext
 from aiogram import types, Router, F
+import random
 
 import mysql_connection as db_con
 from states.appstates import MyStates
 import keyboards
 from location_data import bus_stops
 from .other_functions import calculate_distance
+from location_data import sticker_pack
 
 router = Router()
 
@@ -30,7 +32,7 @@ async def handle_location(message: types.Message):
 async def process_message_from_admin(message: types.Message, state: FSMContext):
     await state.update_data(message_from_admin=message.text)
     await message.answer(text="Повідомлення отримано. Бажаєте прикріпити фото?",
-                            reply_markup=await keyboards.admin_attach_photo())
+                        reply_markup=await keyboards.admin_attach_photo())
     await state.set_state(MyStates.ask_for_photo)
 
 
@@ -39,7 +41,12 @@ async def process_photo_from_admin(message: types.Message, state: FSMContext):
     photo_id = message.photo[-1].file_id
     await state.update_data(photo_id=photo_id)
     await message.answer(text="Фото отримано. Бажаєте надіслати?",
-                            reply_markup=await keyboards.confirm_sending_admin())
+                        reply_markup=await keyboards.confirm_sending_admin())
     await state.set_state(MyStates.sending_the_message)
 
 
+@router.message()
+async def process_message(message: types.Message):
+    await message.answer_sticker(sticker=random.choice(sticker_pack))
+    await message.answer(text="Кнопки - це класно. Користуйтесь кнопками!",
+                        reply_markup=await keyboards.bus_keyboard())
