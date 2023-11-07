@@ -424,7 +424,7 @@ async def get_all_users_ids() -> None:
             global all_users_ids
 
             all_users_ids.clear()
-            result = await session.execute(select(User.telegram_id))
+            result = await session.execute(select(User.telegram_id).order_by(User.date.desc()))
             data = result.scalars().all()
             for telegram_id in data:
                 all_users_ids.append(telegram_id)
