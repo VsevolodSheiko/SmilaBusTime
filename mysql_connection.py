@@ -11,7 +11,7 @@ DATABASE_NAME = config("DATABASE_NAME")
 DATABASE_URL = "mysql+aiomysql://%s:%s@%s/%s" % ('root', DATABASE_PASSWORD, 'localhost', DATABASE_NAME)
 
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL)
 Base = declarative_base()
 
 route_name = "route_30"

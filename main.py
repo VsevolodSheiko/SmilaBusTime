@@ -16,16 +16,22 @@ TOKEN = str(config("TOKEN_main"))
 
 
 # Set up logging
-logging.basicConfig(
+
+
+bot = Bot(token=TOKEN, parse_mode="HTML")
+dp = Dispatcher()
+router = Router()
+
+
+@router.errors()
+async def errors_handler():
+    logging.basicConfig(
     #filename='bot_errors.log',
     level=logging.ERROR,
     format='%(asctime)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-bot = Bot(token=TOKEN, parse_mode="HTML")
-dp = Dispatcher()
-router = Router()
 
 dp.include_routers(
     router,
