@@ -432,7 +432,6 @@ async def get_all_users_ids() -> None:
             if len(all_users_ids) != 0:
                 all_users_ids = [set(all_users_ids)][0]
             all_users_ids = list(all_users_ids)
-            print(all_users_ids)
 
 
 async def update_location(message, location_global):

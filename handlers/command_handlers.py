@@ -18,7 +18,7 @@ DEVELOPER_ID = int(config("DEVELOPER_ID"))
 async def start(message: types.Message, state: FSMContext):
     await message.answer(text="Оновлення даних...",
                          reply_markup=keyboards.remove_keyboard)
-    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 1)
+    #await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id + 2)
     await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                          reply_markup=await keyboards.bus_keyboard())
     await db_con.get_all_users_ids()
