@@ -17,8 +17,8 @@ TOKEN = str(config("TOKEN_main"))
 
 # Set up logging
 logging.basicConfig(
-    #filename='bot_errors.log',
-    level=logging.INFO,
+    filename='bot_errors.log',
+    level=logging.ERROR,
     format='%(asctime)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
