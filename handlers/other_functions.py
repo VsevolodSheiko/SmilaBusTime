@@ -1,5 +1,6 @@
-import asyncio
+import os, asyncio, io
 from aiogram.exceptions import AiogramError
+from aiogram.types import FSInputFile
 from math import sin, cos, sqrt, atan2, radians
 from decouple import config
 
@@ -37,9 +38,8 @@ async def send_message_to_people(text, photo = None):
                 await bot.send_message(chat_id=user, text=text)
             else:
                 await bot.send_photo(chat_id=user, photo=photo, caption=text)
-            #await asyncio.sleep(0.3)
-        except AiogramError as error:
-            print(error)
+            await asyncio.sleep(0.3)
+        except AiogramError:
             counter += 1
     await bot.send_message(
         chat_id=DEVELOPER_ID, 
@@ -50,14 +50,15 @@ async def check_log_file_and_send_to_developer():
     log_file = 'bot_errors.log'
     await bot.send_message(chat_id=DEVELOPER_ID, text=f"{await db_con.get_clicks_count()}")
     if os.stat(log_file).st_size != 0:
-        with open(log_file, 'rb') as file:
-            await bot.send_document(chat_id=DEVELOPER_ID, document=file)
+        file = FSInputFile(log_file)
+        await bot.send_document(chat_id=DEVELOPER_ID, document=file)
 
 
 async def clear_log_file():
+    log_file = 'bot_errors.log'
     if os.stat(log_file).st_size != 0:
         with open(log_file, 'w') as file:
-            await file.truncate(0)
+            file.truncate(0)
 
 
 async def donate_for_developer():

@@ -14,19 +14,12 @@ async def admin_send_message(callback_query: types.CallbackQuery, state: FSMCont
         await callback_query.message.edit_text("Введіть повідомлення, яке бажаєте відправити:")
         await state.set_state(MyStates.waiting_for_message)
     
-    elif callback_query.data == "update_route":
-        await callback_query.message.edit_text(
-            'Оберіть номер автобусу для змін:',
-            reply_markup=await keyboards.bus_keyboard(True)
-            )
-        await state.set_state(MyStates.update_route_get_buses)
-    
-    elif callback_query.data == "back":
+    elif callback_query.data == "admin_cancel":
         await callback_query.message.edit_text(
             "Ви вийшли з режиму адміна.",
             reply_markup=await keyboards.bus_keyboard()
             )
-        await state.finish()
+        await state.clear()
     
     else:
         await callback_query.message.answer(
@@ -53,16 +46,25 @@ async def asking_for_photo_from_admin(callback_query: types.CallbackQuery, state
 async def final_message_sending(callback_query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     if callback_query.data == "yes":
+        await callback_query.answer()
+        await callback_query.message.answer("Оберіть автобус:", reply_markup=await keyboards.bus_keyboard())
+        await state.clear()
         await send_message_to_people(text=data["message_from_admin"], photo=data['photo_id'])
+    elif callback_query.data == "accept":
+        await callback_query.answer()
+        await callback_query.message.answer("Оберіть автобус:", reply_markup=await keyboards.bus_keyboard())
+        await state.clear()
+        await send_message_to_people(text=data["message_from_admin"])
     elif callback_query.data in ["no", "back"]:
+        await callback_query.answer()
+        await state.clear()
         await callback_query.message.edit_text("Ви повернулись до головного меню. Останнє збережене фото було очищене.",
                             reply_markup=await keyboards.bus_keyboard())
-    elif callback_query.data == "accept":
-        await send_message_to_people(text=data["message_from_admin"])
     else:
+        await callback_query.answer()
+        await state.clear()
         await callback_query.message.answer("Вибачте, виникла помилка.", reply_markup=await keyboards.bus_keyboard())
-    await callback_query.answer()
-    await state.finish()
+    
 
 
 @router.callback_query(F.data == "full_bus")
@@ -75,7 +77,16 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
     await callback_query.answer()
 
 
-@router.callback_query(MyStates.get_full_buses, F.data.startswith("route_"))
+@router.callback_query(F.data == "trigger_location")
+async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.message.answer(
+        "Натисніть кнопку знизу, щоб надіслати свою геолокацію. <u>Обов'язково</u> увімкніть на телефоні службу GPS(місцезнаходження)!",
+        reply_markup=await keyboards.location_reply_keyboard(),
+        parse_mode="HTML")
+    await callback_query.answer()
+
+
+@router.callback_query(MyStates.get_full_buses, F.data.startswith("route"))
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     try:
         bus_name = callback_query.data
@@ -107,15 +118,6 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
         await callback_query.answer()
 
 
-@router.callback_query(F.data == "trigger_location")
-async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
-    await callback_query.message.answer(
-        "Натисніть кнопку знизу, щоб надіслати свою геолокацію. <u>Обов'язково</u> увімкніть на телефоні службу GPS(місцезнаходження)!",
-        reply_markup=await keyboards.location_reply_keyboard(),
-        parse_mode="HTML")
-    await callback_query.answer()
-
-
 @router.callback_query(F.data.startswith("route"))
 async def callback_processing(callback_query: types.CallbackQuery, state: FSMContext):
     try:
@@ -136,7 +138,6 @@ async def callback_processing(callback_query: types.CallbackQuery, state: FSMCon
 &#x1F4C5 <b>Дні курсування</b>: {await db_con.get_days()}"""
                                 )
         else:
-            await db_con.get_and_update_clicks(bus_name)
             message_text = (f"""
 &#128652; Ви обрали маршрут #<b>{callback_query.data.split("_")[1]}</b>\n
 Автобус було відправлено:

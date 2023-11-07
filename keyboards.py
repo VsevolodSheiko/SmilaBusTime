@@ -5,18 +5,17 @@ from decouple import config
 remove_keyboard = ReplyKeyboardRemove()
 
 
-async def bus_keyboard(only_buses=False):
+async def bus_keyboard():
     global buttons_under_bus_buttons, list_of_buses
     
     builder = InlineKeyboardBuilder()
-    if only_buses:
-        for button in list_of_buses:
-            builder.add(button)
-        return builder.adjust(6, 6, 6, 6).as_markup()
-    else:
-        for button in buttons_under_bus_buttons:
-            builder.add(button)
-        return builder.adjust(6, 6, 6, 6, 1, 1, 1).as_markup()
+    for button in list_of_buses:
+        builder.add(button)
+    for button in buttons_under_bus_buttons:
+        builder.add(button)
+    keyboard = builder.adjust(6, 6, 6, 6, 1, 1, 1)
+
+    return keyboard.as_markup()
 
 
 async def admin_start_buttons():

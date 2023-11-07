@@ -406,7 +406,7 @@ async def set_clickers_to_zero():
             result = await session.execute(stmt)
             data = result.scalars().all()
             for i in data:
-                stmt = update(Clicker).where(data == i).values(clicks = 0)
+                stmt = update(Clicker).where(Clicker.route_name == i).values(clicks = 0)
                 await session.execute(stmt)
 
 
@@ -432,6 +432,7 @@ async def get_all_users_ids() -> None:
             if len(all_users_ids) != 0:
                 all_users_ids = [set(all_users_ids)][0]
             all_users_ids = list(all_users_ids)
+            print(all_users_ids)
 
 
 async def update_location(message, location_global):

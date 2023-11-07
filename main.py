@@ -1,5 +1,5 @@
 import logging
-import asyncio
+import asyncio 
 
 from aiogram import Bot, Dispatcher, Router
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -36,22 +36,25 @@ dp.include_routers(
 
 
 async def main():
+    await db.get_all_users_ids()
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
     scheduler = AsyncIOScheduler()
-    scheduler.start()
-
+    
     scheduler.add_job(other_func.donate_for_developer, "cron", day=25, hour=20)
-    scheduler.add_job(other_func.get_all_users_ids, "interval", hours=2)
+    scheduler.add_job(db.get_all_users_ids, "interval", hours=1)
     scheduler.add_job(other_func.help_developer, "cron", day_of_week="tue", hour=20, minute=00)
     scheduler.add_job(other_func.check_log_file_and_send_to_developer, "cron", hour=22)
     scheduler.add_job(other_func.clear_log_file, "cron", hour=22, minute=1)
     scheduler.add_job(db.set_clickers_to_zero, "cron", hour=1)
+    
+    scheduler.start()
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
     
 
     
