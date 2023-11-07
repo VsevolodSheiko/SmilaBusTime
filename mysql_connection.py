@@ -14,7 +14,7 @@ DATABASE_URL = "mysql+aiomysql://%s:%s@%s/%s" % ('root', DATABASE_PASSWORD, 'loc
 engine = create_async_engine(DATABASE_URL)
 Base = declarative_base()
 
-route_name = "route_30"
+route_name = ""
 
 
 all_users_ids = []
@@ -315,7 +315,6 @@ async def get_full_departure_time_2():
             clear_empty_strings = [value for value in data if value is not None]
             full_time_list = []
             for row in clear_empty_strings:
-                print(row.departure_time_2)
                 if len(str(row.notes_right)) > 0 and row.departure_time_2 is not None:
                     to_list = f"{row.departure_time_2.strftime('%H').zfill(2)}:{row.departure_time_2.strftime('%M').zfill(2)}{row.notes_right}"
                     full_time_list.append(to_list)
@@ -438,5 +437,5 @@ async def update_location(message, location_global):
     async with AsyncSession(engine) as session:
         async with session.begin():
 
-            stmt = update(User).where(User.telegram_id == message.from_user.id).values(location=f"{location_global.latitude} {location_global.longitude}")
+            stmt = update(User).where(User.telegram_id == message).values(location=location_global)
             result = await session.execute(stmt)

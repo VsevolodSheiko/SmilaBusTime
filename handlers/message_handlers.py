@@ -23,7 +23,7 @@ async def handle_location(message: types.Message):
             closest_point = point
     await message.reply_location(latitude=closest_point[0][0], longitude=closest_point[0][1])
     await message.answer(text=f"&#128652 Автобусні маршрути: {closest_point[1]}", parse_mode="HTML")
-    await db_con.update_location(message.from_user.id, message, location_global=location_global)
+    await db_con.update_location(message.from_user.id, location_global=f"{location_global.latitude} {location_global.longitude}")
 
 
 @router.message(MyStates.waiting_for_message)

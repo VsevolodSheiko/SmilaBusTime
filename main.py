@@ -23,11 +23,9 @@ dp = Dispatcher()
 router = Router()
 
 
-@router.errors()
-async def errors_handler():
-    logging.basicConfig(
+logging.basicConfig(
     #filename='bot_errors.log',
-    level=logging.ERROR,
+    level=logging.INFO,
     format='%(asctime)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
