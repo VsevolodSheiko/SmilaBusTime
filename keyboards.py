@@ -1,7 +1,6 @@
-from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardBuilder, KeyboardButton, ReplyKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.types import ReplyKeyboardRemove
 from decouple import config
-from mysql_connection import get_bus_columns, get_bus_fields
 
 remove_keyboard = ReplyKeyboardRemove()
 
@@ -27,7 +26,6 @@ async def admin_start_buttons():
         [
             [
                 InlineKeyboardButton(text="Відправити повідомлення", callback_data="admin_message"),
-                InlineKeyboardButton(text="Редагувати маршрут", callback_data='update_route'),
                 InlineKeyboardButton(text="Назад", callback_data="admin_cancel"),
             ]
         ]
@@ -61,25 +59,6 @@ async def admin_attach_photo():
 
     return builder.adjust(1).as_markup()
 
-
-async def admin_update_route_columns():
-    column_names = await get_bus_columns()
-    builder = InlineKeyboardBuilder()
-
-    for column_name in column_names:
-        builder.add(InlineKeyboardButton(text=str(column_name), callback_data=str(column_name)))
-    
-    return builder.adjust(1).as_markup()
-
-
-async def admin_update_route_field(column):
-    fields = await get_bus_fields(column)
-    builder = InlineKeyboardBuilder()
-
-    for field_name in fields:
-        builder.add(InlineKeyboardButton(text=str(field_name), callback_data=str(column)))
-    
-    return builder.adjust(1).as_markup()
 
 
 async def location_reply_keyboard():

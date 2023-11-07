@@ -1,6 +1,5 @@
 from aiogram.fsm.context import FSMContext
 from aiogram import types, Router, F
-from aiogram.exceptions import AiogramError
 
 from states.appstates import MyStates
 from .other_functions import send_message_to_people
@@ -64,35 +63,6 @@ async def final_message_sending(callback_query: types.CallbackQuery, state: FSMC
         await callback_query.message.answer("Вибачте, виникла помилка.", reply_markup=await keyboards.bus_keyboard())
     await callback_query.answer()
     await state.finish()
-
-
-@router.callback_query(MyStates.update_route_get_buses) 
-async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    bus_name = callback_query.data
-    db_con.route_name = bus_name
-
-    await state.update_data(bus_route=callback_query.data)
-    await callback_query.message.edit_text('Оберіть колонку, дані поля в якій бажаєте змінити:', reply_markup=await keyboards.admin_update_route_columns())
-    await state.set_state(MyStates.update_route_choose_column)
-    await callback_query.answer()
-
-
-@router.callback_query(MyStates.update_route_choose_column)
-async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    bus_column=callback_query.data
-    await state.update_data(bus_column=bus_column)
-    
-    await callback_query.message.edit_text("Оберіть поле, дані в якому бажаєте змінити:", reply_markup=await keyboards.admin_update_route_field(bus_column))
-    await state.set_state(MyStates.update_route_choose_field)
-    await callback_query.answer()
-
-
-@router.callback_query(MyStates.update_route_choose_field)
-async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    await state.update_data(bus_field=callback_query.data)
-    await callback_query.message.edit_text("Введіть нові дані: ")
-    await state.set_state(MyStates.update_route_new_data)
-    await callback_query.answer()
 
 
 @router.callback_query(F.data == "full_bus")

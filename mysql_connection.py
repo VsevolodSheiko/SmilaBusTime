@@ -1,5 +1,5 @@
 import asyncio
-from sqlalchemy import create_engine, Column, Integer, BigInteger, String, Date, Time, select, delete, update, insert, inspect
+from sqlalchemy import Column, Integer, BigInteger, String, Date, Time, select, delete, update, inspect
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from decouple import config
@@ -440,55 +440,3 @@ async def update_location(message, location_global):
 
             stmt = update(User).where(User.telegram_id == message.from_user.id).values(location=f"{location_global.latitude} {location_global.longitude}")
             result = await session.execute(stmt)
-
-
-async def get_bus_columns():
-    global route_name
-    bus = await create_bus_class(route_name)
-
-    inspector = inspect(bus)
-    column_names = [column.key for column in inspector.c]
-
-    return column_names
-
-
-async def get_bus_fields(column):
-    global route_name
-    bus = await create_bus_class(route_name)
-    async with AsyncSession(engine) as session:
-        async with session.begin():
-            selected_column = getattr(bus, column, None)
-
-            stmt = select(selected_column)
-            result = await session.execute(stmt)
-            data = [fields for fields in result.scalars().all()]
-
-            return data
-
-
-async def get_row_id_by_column_and_field(column, field):
-    global route_name
-    bus = await create_bus_class(route_name)
-    async with AsyncSession(engine) as session:
-        async with session.begin():
-            
-            bus_column = getattr(bus, column)
-
-            stmt = select(bus.id).where(bus_column == column)
-            result = await session.execute(stmt)
-            data = [fields for fields in result.scalars().all()]
-
-            return data
-
-
-async def update_data_in_bus_route(column, old_data, new_data):
-    global route_name
-    bus = await create_bus_class(route_name)
-    async with AsyncSession(engine) as session:
-        async with session.begin():
-            bus_column = getattr(bus, column)
-            print(bus_column)
-
-            stmt = update(bus).where(bus_column == old_data).values(bus_column = new_data)
-            await session.execute(stmt)
-

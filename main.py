@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from aiogram import Bot, types, Dispatcher, Router
+from aiogram import Bot, Dispatcher, Router
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from decouple import config
 
