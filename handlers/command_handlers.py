@@ -1,4 +1,4 @@
-from aiogram import Bot, types, Router
+from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
@@ -8,17 +8,14 @@ from datetime import datetime
 import mysql_connection as db_con
 import keyboards
 from states.appstates import MyStates
+from handlers.other_functions import bot
 
 router = Router()
-bot = Bot(config("TOKEN_test"))
 DEVELOPER_ID = int(config("DEVELOPER_ID"))
 
 
 @router.message(Command("start"))
 async def start(message: types.Message):
-    await message.answer(text="Оновлення даних...",
-                         reply_markup=keyboards.remove_keyboard)
-    
     await message.answer(text="Будь ласка, оберіть номер потрібного автобусу з плиток нижче:",
                          reply_markup=await keyboards.bus_keyboard())
     await db_con.get_all_users_ids()

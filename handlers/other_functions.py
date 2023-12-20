@@ -1,4 +1,5 @@
-import os, asyncio, io
+import os, asyncio
+from aiogram import Bot
 from aiogram.exceptions import AiogramError
 from aiogram.types import FSInputFile
 from math import sin, cos, sqrt, atan2, radians
@@ -6,7 +7,7 @@ from decouple import config
 
 import mysql_connection as db_con
 
-from .command_handlers import bot
+bot = Bot(config("TOKEN_main"), parse_mode="HTML")
 DEVELOPER_ID = int(config("DEVELOPER_ID"))
 
 async def calculate_distance(lat1, lon1, lat2, lon2):
