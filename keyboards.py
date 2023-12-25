@@ -13,7 +13,7 @@ async def bus_keyboard():
         builder.add(button)
     for button in buttons_under_bus_buttons:
         builder.add(button)
-    keyboard = builder.adjust(6, 6, 6, 6, 1, 1, 1)
+    keyboard = builder.adjust(6, 7, 6, 6, 1, 1, 1)
 
     return keyboard.as_markup()
 
@@ -83,6 +83,7 @@ list_of_buses = [
     InlineKeyboardButton(text='34', callback_data='route_34'),
     InlineKeyboardButton(text='39', callback_data='route_39'),
     InlineKeyboardButton(text='40', callback_data='route_40'),
+    InlineKeyboardButton(text='41', callback_data='route_41'),
     InlineKeyboardButton(text='48', callback_data='route_48'),
     InlineKeyboardButton(text='49', callback_data='route_49'),
     InlineKeyboardButton(text='126', callback_data='route_126'),
@@ -116,6 +117,7 @@ dict_of_buttons = {
     "route_34": "https://www.google.com/maps/d/u/0/edit?mid=1u6lpDXHjj2czMdZyBBdlQxyi_zqCQqw&usp=sharing",
     "route_39": "https://www.google.com/maps/d/u/0/edit?mid=1pKQ3g4cTDu8STRN02ki4QmL1NCX2A3M&usp=sharing",
     "route_40": "https://www.google.com/maps/d/u/0/edit?mid=1u4T3f9D945xSrdhDyA2jbCyaPTUBxdU&usp=sharing",
+    "route_41": "https://www.google.com/maps/d/u/0/edit?mid=1WPsDNiKqTzmuV54AKwa8Q0oCdUGVu1Q&usp=sharing",
     "route_48": "https://www.google.com/maps/d/u/0/edit?mid=1Sufn9IBnXK4ZdjVW8RT595f3gVrUlu8&usp=sharing",
     "route_49": "https://www.google.com/maps/d/u/0/edit?mid=1vNY7jE3T9L9R2yLJdrEV8WwJ12Aqgpk&usp=sharing",
     "route_126": "https://www.google.com/maps/d/u/0/edit?mid=1EVKgAtZtETezea5x_Fiq_WywADnWxOg&usp=sharing",
