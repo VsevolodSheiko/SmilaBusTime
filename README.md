@@ -1,40 +1,10 @@
 # SmilaBusTime
 
-SmilaBusTime is a Telegram bot that provides information about bus timetables in the city of Smila, Ukraine.
-
-## Installation
-
-To use SmilaBusTime, follow these steps:
-
-1. Clone the repository to your local machine:
-   
-   ```
-   git clone https://github.com/VsevolodSheiko/SmilaBusTime.git
-   ```
-
-2. Navigate to the project directory:
-
-    ```
-    cd SmilaBusTime
-    ```
-
-3. Install the dependencies from the requirements.txt file:
-
-    ```
-    pip install -r requirements.txt
-    ```
-
+SmilaBusTime is a Telegram bot that provides information about bus timetables in the city of Smila, Ukraine. This project is up-to-date, and people of city Smila use it every day.
 
 ## Usage
 
-1. Start the bot by running the main.py file:
-
-    ```
-    python main.py
-    ```
-
-2. Go to the Telegram app and search for "SmilaBusTime"
-3. Start a chat with the bot and use the buttons to get the information.
+If you would like to see, how bot works, you can find it by searching in telegram with this address: https://t.me/SmilaBusTime_bot
 
 ## Contributing
 
@@ -49,8 +19,4 @@ If you'd like to contribute to the SmilaBusTime project, please follow these gui
 
 3. Make your changes, commit them, and push to your forked repository.
 4. Create a pull request to submit your changes for review.
-
-## License
-
-SmilaBusTime is licensed under the "Vsevolod Sheiko Production" license.
 
