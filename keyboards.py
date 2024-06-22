@@ -1,8 +1,14 @@
+from datetime import datetime
+
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.types import ReplyKeyboardRemove
 from decouple import config
 
 remove_keyboard = ReplyKeyboardRemove()
+
+DEVELOPER_ID = config("DEVELOPER_ID")
+GPS_url = config("GPS_url")
+current_time = datetime.now().time()
 
 
 async def bus_keyboard():
@@ -13,7 +19,7 @@ async def bus_keyboard():
         builder.add(button)
     for button in buttons_under_bus_buttons:
         builder.add(button)
-    keyboard = builder.adjust(6, 7, 6, 6, 1, 1, 1)
+    keyboard = builder.adjust(6, 7, 6, 6, 1, 1, 1, 1)
 
     return keyboard.as_markup()
 
@@ -59,7 +65,6 @@ async def admin_attach_photo():
     return builder.adjust(1).as_markup()
 
 
-
 async def location_reply_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
@@ -71,7 +76,6 @@ async def location_reply_keyboard():
     )
     return keyboard
 
-DEVELOPER_ID = config("DEVELOPER_ID")
 
 list_of_buses = [
     InlineKeyboardButton(text='3', callback_data='route_3'),
@@ -101,12 +105,22 @@ list_of_buses = [
     InlineKeyboardButton(text='309', callback_data='route_309'),
 ]
 
+
 buttons_under_bus_buttons = [
     InlineKeyboardButton(text='Повний розклад руху', callback_data='full_bus'),
     InlineKeyboardButton(text='Найближча зупинка', callback_data='trigger_location'),
-    InlineKeyboardButton(text='Написати розробнику', callback_data='chat_to_developer', url=f"tg://user?id={DEVELOPER_ID}")
 ]
 
+
+if current_time >= datetime.strptime("06:00", "%H:%M").time() and current_time <= datetime.strptime("22:00", "%H:%M").time():
+    buttons_under_bus_buttons.append(
+        InlineKeyboardButton(text='GPS трекінг', callback_data='bus_gps', url=GPS_url)
+        )
+    buttons_under_bus_buttons.append(
+        InlineKeyboardButton(text='Написати розробнику', callback_data='chat_to_developer', url=f"tg://user?id={DEVELOPER_ID}")
+    )
+    
+    
 dict_of_buttons = {
     "route_3": "",
     "route_4": "https://www.google.com/maps/d/u/0/edit?mid=1zz64r9m2eFv75kiMI-DC02EGxm1bQfU&usp=sharing",
