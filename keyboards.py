@@ -19,6 +19,13 @@ async def bus_keyboard():
         builder.add(button)
     for button in buttons_under_bus_buttons:
         builder.add(button)
+    if current_time >= datetime.strptime("06:00", "%H:%M").time() and current_time <= datetime.strptime("22:00", "%H:%M").time():
+        builder.add(
+            InlineKeyboardButton(text='GPS трекінг', callback_data='bus_gps', url=GPS_url)
+            )
+        builder.add(
+            InlineKeyboardButton(text='Написати розробнику', callback_data='chat_to_developer', url=f"tg://user?id={DEVELOPER_ID}")
+        )
     keyboard = builder.adjust(6, 7, 6, 6, 1, 1, 1, 1)
 
     return keyboard.as_markup()
@@ -112,13 +119,7 @@ buttons_under_bus_buttons = [
 ]
 
 
-if current_time >= datetime.strptime("06:00", "%H:%M").time() and current_time <= datetime.strptime("22:00", "%H:%M").time():
-    buttons_under_bus_buttons.append(
-        InlineKeyboardButton(text='GPS трекінг', callback_data='bus_gps', url=GPS_url)
-        )
-    buttons_under_bus_buttons.append(
-        InlineKeyboardButton(text='Написати розробнику', callback_data='chat_to_developer', url=f"tg://user?id={DEVELOPER_ID}")
-    )
+
     
     
 dict_of_buttons = {
