@@ -8,12 +8,13 @@ remove_keyboard = ReplyKeyboardRemove()
 
 DEVELOPER_ID = config("DEVELOPER_ID")
 GPS_url = config("GPS_url")
-current_time = datetime.now().time()
+
 
 
 async def bus_keyboard():
     global buttons_under_bus_buttons, list_of_buses
     
+    current_time = datetime.now().time()
     builder = InlineKeyboardBuilder()
     for button in list_of_buses:
         builder.add(button)
@@ -21,7 +22,7 @@ async def bus_keyboard():
         builder.add(button)
     if current_time >= datetime.strptime("06:00", "%H:%M").time() and current_time <= datetime.strptime("22:00", "%H:%M").time():
         builder.add(
-            InlineKeyboardButton(text='GPS трекінг', callback_data='bus_gps', url=GPS_url)
+            InlineKeyboardButton(text='GPS трекінг', url=GPS_url)
             )
         builder.add(
             InlineKeyboardButton(text='Написати розробнику', callback_data='chat_to_developer', url=f"tg://user?id={DEVELOPER_ID}")
