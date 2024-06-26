@@ -1,4 +1,3 @@
-import asyncio
 from sqlalchemy import Column, Integer, BigInteger, String, Date, Time, select, delete, update, inspect
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
