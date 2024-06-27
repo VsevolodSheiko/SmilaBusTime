@@ -7,7 +7,7 @@ from decouple import config
 
 import mysql_connection as db_con
 
-bot = Bot(config("TOKEN_test"), parse_mode="HTML")
+bot = Bot(config("TOKEN_main"), parse_mode="HTML")
 DEVELOPER_ID = int(config("DEVELOPER_ID"))
 
 async def calculate_distance(lat1, lon1, lat2, lon2):
